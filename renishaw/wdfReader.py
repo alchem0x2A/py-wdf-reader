@@ -56,6 +56,27 @@ unit_types = {0: "Arbitrary",
               23: "K/min",
               24: "TimeStamp"}
 
+data_types = {0: "Unitless",
+              1: "Frequency",
+              2: "Intensity",
+              3: "X",
+              4: "Y",
+              5: "Z",
+              6: "R",
+              7: "Theta",
+              8: "Phi",
+              9: "Temperature",
+              10: "Pressure",
+              11: "Time",
+              12: "Derived",
+              13: "Polarization",
+              14: "FocusTrack",
+              15: "RampRate",
+              16: "Checksum",
+              17: "Flags",
+              18: "ElapsedTime"}
+
+
 class wdfReader(object):
     """Reader for Renishaw(TM) WiRE Raman spectroscopy files (.wdf format)
     Args:
@@ -72,8 +93,8 @@ class wdfReader(object):
     laser_wavenumber (float32) : Wavenumber in cm^-1
     count (int) : Numbers of experiments (same type)
     spectral_units (int) : Unit of spectra, see unit_types
-    xlist_type : #TODO
-    xlist_units : #TODO
+    xlist_type (int) : See unit_types
+    xlist_units (int) : See unit_types
     ylist_type : #TODO
     ylist_units : #TODO
     point_per_spectrum : None
@@ -82,11 +103,13 @@ class wdfReader(object):
     xlist_length : None
     ylist_length : None
     accumulation_count : None
-    block_info : {
-    
-    
+    block_info (dict) : Info block at least with following keys
+                        DATA, XLST, YLST, ORGN
+                        #TODO types?
+
+
     """
-    
+
     def __init__(self, file_obj):
         # try:
             # self.file_obj = open(file_name, "rb")
@@ -118,7 +141,7 @@ class wdfReader(object):
             self.parse_header()
         except:
             print("Failed to parse the header of file")
-        # Location the data, xlist, ylist and 
+        # Location the data, xlist, ylist and
         try:
             self.block_info["DATA"] = self.locate_block("DATA")
             self.block_info["XLST"] = self.locate_block("XLST")
@@ -139,28 +162,34 @@ class wdfReader(object):
 
     def _read_int16(self):
         return struct.unpack(s_int16, self.file_obj.read(l_int16))[0]
+
     def _read_int32(self):
         return struct.unpack(s_int32, self.file_obj.read(l_int32))[0]
+
     def _read_int64(self):
         return struct.unpack(s_int64, self.file_obj.read(l_int64))[0]
+
     def _read_float(self):
         return struct.unpack(s_float, self.file_obj.read(l_float))[0]
+
     def _read_double(self):
         return struct.unpack(s_double, self.file_obj.read(l_double))[0]
+
     def _read_utf8(self, size):
         # TODO: strip the blanks
         return self.file_obj.read(size).decode("utf8")
 
-    # The method for reading the info in the file header 
+    # The method for reading the info in the file header
     def parse_header(self):
         self.file_obj.seek(0)   # return to the head
-        block_ID = self.file_obj.read(4).decode("ascii")  # Must make the conversion under python3
+        # Must make the conversion under python3
+        block_ID = self.file_obj.read(4).decode("ascii")
         block_UID = self._read_int32()
         block_len = self._read_int64()
         if (block_ID != "WDF1") or (block_UID != 0 and block_UID != 1) \
            or (block_len != 512):
             raise ValueError("The wdf file format is incorrect!")
-        
+
         # The keys from the header
         self.file_obj.seek(60)
         self.point_per_spectrum = self._read_int32()
@@ -199,7 +228,8 @@ class wdfReader(object):
             self.file_obj.seek(curr_pos)
             while (curr_name != block_name) and (curr_name != ""):
                 curr_pos = next_pos
-                curr_name = self.file_obj.read(4).decode("ascii")  # Always a 4-str block name
+                curr_name = self.file_obj.read(4).decode(
+                    "ascii")  # Always a 4-str block name
                 uid = self._read_int32()
                 size = self._read_int64()
                 next_pos += size
@@ -209,10 +239,11 @@ class wdfReader(object):
             if curr_name == block_name:
                 return (curr_pos, size)
             else:
-                raise ValueError("The block with name {} is not found!".format(block_name))   
-
+                raise ValueError(
+                    "The block with name {} is not found!".format(block_name))
 
     # get the xlist info
+
     def get_xlist_info(self):
         pos, size = self.locate_block("XLST")
         offset = 16
@@ -239,6 +270,7 @@ class wdfReader(object):
     """
     Important parts for data retrieval
     """
+
     def get_xdata(self):
         pos = self.locate_block("XLST")[0]
         offset = 24
@@ -247,7 +279,7 @@ class wdfReader(object):
         self.file_obj.seek(pos + offset)
         x_data = numpy.fromfile(self.file_obj, dtype="float32", count=size)
         return x_data
-    
+
     def get_ydata(self):
         pos = self.locate_block("YLST")[0]
         offset = 24
@@ -265,15 +297,17 @@ class wdfReader(object):
         if start > end:
             raise ValueError("Start cannot be larger than end!")
 
-        pos_start = self.locate_block("DATA")[0] + 16 + l_float*start*self.point_per_spectrum
+        pos_start = self.locate_block(
+            "DATA")[0] + 16 + l_float*start*self.point_per_spectrum
         n_row = end - start + 1
         self.file_obj.seek(pos_start)
-        spectra_data = numpy.fromfile(self.file_obj, dtype="float32", count=n_row*self.point_per_spectrum)
+        spectra_data = numpy.fromfile(
+            self.file_obj, dtype="float32", count=n_row*self.point_per_spectrum)
         if len(spectra_data.shape) == 1:
             # The spectra is only 1D array
             return spectra_data
         else:
             # Make 2D array
-            spectra_data = spectra_data.reshape(n_row, spectra_data.size // n_row)
+            spectra_data = spectra_data.reshape(
+                n_row, spectra_data.size // n_row)
             return spectra_data
-    
