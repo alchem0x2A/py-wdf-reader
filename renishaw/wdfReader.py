@@ -1,6 +1,10 @@
+# Renishaw wdf Raman spectroscopy file reader
+# Code inspired by Henderson, Alex DOI:10.5281/zenodo.495477
 from __future__ import print_function
+from enum import Enum
 import struct
 import numpy
+
 
 
 l_int16 = 2
@@ -15,66 +19,74 @@ s_float = "<f"
 l_double = 8
 s_double = "<d"
 
-measurement_types = {0: "Unspecified",
-                     1: "Single spectrum",
-                     2: "Spectra series",
-                     3: "Mapping"}
 
-scan_types = {0: "Unspecified",
-              1: "Static",
-              2: "Continuous",
-              3: "StepRepeat",
-              4: "FilterScan",
-              5: "FilterImage",
-              6: "StreamLine",
-              7: "StreamLineHR",
-              8: "PointDetector"}
+class MeasurementType(Enum):
+    Unspecified = 0
+    Single = 1
+    Series = 2
+    Mapping = 3
 
-unit_types = {0: "Arbitrary",
-              1: "RamanShift",
-              2: "Wavenumber",
-              3: "nm",
-              4: "eV",
-              5: "micron",
-              6: "Counts",
-              7: "Electrons",
-              8: "mm",
-              9: "m",
-              10: "K",
-              11: "Pa",
-              12: "s",
-              13: "ms",
-              14: "h",
-              15: "d",
-              16: "px",
-              17: "Intensity (abs)",
-              18: "Intensity (rel)",
-              19: "Degrees",
-              20: "Rad",
-              21: "Celsius",
-              22: "Fahrenheit",
-              23: "K/min",
-              24: "TimeStamp"}
 
-data_types = {0: "Unitless",
-              1: "Frequency",
-              2: "Intensity",
-              3: "X",
-              4: "Y",
-              5: "Z",
-              6: "R",
-              7: "Theta",
-              8: "Phi",
-              9: "Temperature",
-              10: "Pressure",
-              11: "Time",
-              12: "Derived",
-              13: "Polarization",
-              14: "FocusTrack",
-              15: "RampRate",
-              16: "Checksum",
-              17: "Flags",
-              18: "ElapsedTime"}
+class ScanType(Enum):
+    Unspecified = 0
+    Static = 1
+    Continuous = 2
+    StepRepeat = 3
+    FilterScan = 4
+    FilterImage = 5
+    StreamLine = 6
+    StreamLineHR = 7
+    PointDetector = 8
+
+
+class UnitType(Enum):
+    Arbitrary = 0
+    RamanShift = 1
+    Wavenumber = 2
+    Nanometre = 3
+    ElectronVolt = 4
+    Micron = 5
+    Counts = 6
+    Electrons = 7
+    Millimetres = 8
+    Metres = 9
+    Kelvin = 10
+    Pascal = 11
+    Seconds = 12
+    Milliseconds = 13
+    Hours = 14
+    Days = 15
+    Pixels = 16
+    Intensity = 17
+    RelativeIntensity = 18
+    Degrees = 19
+    Radians = 20
+    Celsius = 21
+    Fahrenheit = 22
+    KelvinPerMinute = 23
+    FileTime = 24
+
+
+class DataType(Enum):
+    Arbitrary = 0
+    Frequency = 1
+    Intensity = 2
+    X = 3
+    Y = 4
+    Z = 5
+    R = 6
+    Theta = 7
+    Phi = 8
+    Temperature = 9
+    Pressure = 10
+    Time = 11
+    Derived = 12
+    Polarization = 13
+    FocusTrack = 14
+    RampRate = 15
+    Checksum = 16
+    Flags = 17
+    ElapsedTime = 18
 
 
 class wdfReader(object):
@@ -105,7 +117,7 @@ class wdfReader(object):
     accumulation_count : None
     block_info (dict) : Info block at least with following keys
                         DATA, XLST, YLST, ORGN
-                        #TODO types?
+                        # TODO types?
 
 
     """
@@ -248,7 +260,7 @@ class wdfReader(object):
         pos, size = self.locate_block("XLST")
         offset = 16
         self.file_obj.seek(pos + offset)
-        #TODO: strings
+        # TODO: strings
         data_type = self._read_int32()
         data_unit = self._read_int32()
         return (data_type, data_unit)
@@ -258,7 +270,7 @@ class wdfReader(object):
         pos, size = self.locate_block("YLST")
         offset = 16
         self.file_obj.seek(pos + offset)
-        #TODO: strings
+        # TODO: strings
         data_type = self._read_int32()
         data_unit = self._read_int32()
         return (data_type, data_unit)
