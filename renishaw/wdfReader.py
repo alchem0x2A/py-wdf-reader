@@ -2,6 +2,7 @@ from __future__ import print_function
 import struct
 import numpy
 
+
 l_int16 = 2
 l_int32 = 4
 l_int64 = 8
@@ -14,13 +15,83 @@ s_float = "<f"
 l_double = 8
 s_double = "<d"
 
+measurement_types = {0: "Unspecified",
+                     1: "Single spectrum",
+                     2: "Spectra series",
+                     3: "Mapping"}
+
+scan_types = {0: "Unspecified",
+              1: "Static",
+              2: "Continuous",
+              3: "StepRepeat",
+              4: "FilterScan",
+              5: "FilterImage",
+              6: "StreamLine",
+              7: "StreamLineHR",
+              8: "PointDetector"}
+
+unit_types = {0: "Arbitrary",
+              1: "RamanShift",
+              2: "Wavenumber",
+              3: "nm",
+              4: "eV",
+              5: "micron",
+              6: "Counts",
+              7: "Electrons",
+              8: "mm",
+              9: "m",
+              10: "K",
+              11: "Pa",
+              12: "s",
+              13: "ms",
+              14: "h",
+              15: "d",
+              16: "px",
+              17: "Intensity (abs)",
+              18: "Intensity (rel)",
+              19: "Degrees",
+              20: "Rad",
+              21: "Celsius",
+              22: "Fahrenheit",
+              23: "K/min",
+              24: "TimeStamp"}
 
 class wdfReader(object):
-    def __init__(self, file_name):
-        try:
-            self.file_obj = open(file_name, "rb")
-        except IOError:
-            raise IOError("File {} does noe exist!".format(file_name))
+    """Reader for Renishaw(TM) WiRE Raman spectroscopy files (.wdf format)
+    Args:
+    file_name (file) : File object for the wdf file
+
+    Attributes:
+    title (str) : Title of measurement
+    username (str) : Username
+    application_name (str) : Default WiRE
+    application_version (int,) * 4 : Version number, e.g. [4, 4, 0, 6602]
+    measurement_type (int) : Type of measurement
+                             0=unknown, 1=single, 2=multi, 3=mapping 
+    scan_type (int) : Scan of type, see values in scan_types
+    laser_wavenumber (float32) : Wavenumber in cm^-1
+    count (int) : Numbers of experiments (same type)
+    spectral_units (int) : Unit of spectra, see unit_types
+    xlist_type : #TODO
+    xlist_units : #TODO
+    ylist_type : #TODO
+    ylist_units : #TODO
+    point_per_spectrum : None
+    data_origin_count : None
+    capacity : None
+    xlist_length : None
+    ylist_length : None
+    accumulation_count : None
+    block_info : {
+    
+    
+    """
+    
+    def __init__(self, file_obj):
+        # try:
+            # self.file_obj = open(file_name, "rb")
+        # except IOError:
+            # raise IOError("File {0} does noe exist!".format(file_name))
         # Initialize the properties for the wdfReader class
         self.title = ""
         self.username = ""
