@@ -85,4 +85,9 @@ class DataType(IntEnum):
 
 class Positions(IntEnum):
     blockid = 0x4
-    pps = 0x3c
+    measurement_info = 0x3c                  # 
+    spectral_info = 0x98
+    file_info = 0xd0
+    usrname = 0xf0
+    data_block = 0x200
+    

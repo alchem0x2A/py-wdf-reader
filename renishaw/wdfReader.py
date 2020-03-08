@@ -115,7 +115,7 @@ class wdfReader(object):
             return struct.unpack(fmt_out, self.file_obj.read(fmt_in))[0]
         elif type == "utf8":
             # Read utf8 string with determined size block
-            self.file_obj.read(size).decode("utf8")
+            return self.file_obj.read(size).decode("utf8").replace("\x00", "")
         else:
             # TODO: strip the blanks
             raise ValueError("Unknown data length format!")
@@ -133,7 +133,7 @@ class wdfReader(object):
         # TODO what are the digits in between?
 
         # The keys from the header
-        self.file_obj.seek(Positions.ppl)  # space
+        self.file_obj.seek(Positions.measurement_info)  # space
         self.point_per_spectrum = self._read_type("int32")
         self.capacity = self._read_type("int64")
         self.count = self._read_type("int64")
@@ -147,13 +147,17 @@ class wdfReader(object):
         self.scan_type = self._read_type("int32")
         self.measurement_type = self._read_type("int32")
         # For the units
-        self.file_obj.seek(152)
+        self.file_obj.seek(Positions.spectral_info)
         self.spectral_units = self._read_type("int32")
         self.laser_length = convert_wl(self._read_type("float"))
         # Username and title
-        self.file_obj.seek(0xd0)
-        self.username = self._read_type("utf8", 0x20)
-        self.title = self._read_type("utf8", 0x200 - 0xf0)
+        self.file_obj.seek(Positions.file_info)
+        self.username = self._read_type("utf8",
+                                        Positions.usrname -
+                                        Positions.file_info)
+        self.title = self._read_type("utf8",
+                                     Positions.data_block -
+                                     Positions.usrname)
 
     # locate the data block offset with the corresponding block name
     def locate_block(self, block_name):
