@@ -6,7 +6,7 @@ import numpy
 from .types import LenType, DataType, MeasurementType
 from .types import ScanType, UnitType, DataType
 from .types import Positions
-from .utils import convert_wl
+from .utils import convert_wl, convert_attr_name
 
 class wdfReader(object):
     """Reader for Renishaw(TM) WiRE Raman spectroscopy files (.wdf format)
@@ -92,6 +92,16 @@ class wdfReader(object):
         # TODO
         # self.origin_list_info = self.get_origin_list_info()
 
+    def _get_type_string(self, attr, data_type):
+        """Get the enumerated-data_type as string
+        """
+        val = getattr(self, attr)  # No error checking
+        if data_type is None:
+            return val
+        else:
+            return data_type(val).name
+
+
     def print_info(self):
         """Print information of the wdf file
         """
@@ -99,8 +109,21 @@ class wdfReader(object):
             s = []
             s.append("{0} version:\t{1}.{2}.{3}.{4}".format(self.application_name,
                                                             *self.application_version))
+
+            
             s.append("Title:\t{0:s}".format(self.title))
-            s.append("Wavelength:\t{0:.1f}".format(self.laser_length))
+            s.append("Laser Wavelength:\t{0:.1f} nm".format(self.laser_length))
+            for a, t in zip(["point_per_spectrum",
+                             "scan_type", "measurement_type",
+                             "spectral_units",
+                             "xlist_units", "xlist_length",
+                             "ylist_units", "ylist_length"],
+                            [None,
+                             ScanType, MeasurementType, UnitType,
+                             UnitType, None, UnitType, None]):
+                sname = convert_attr_name(a)
+                val = self._get_type_string(a, t)
+                s.append("{0}:\t{1}".format(sname, val))
             print("\n".join(s))
 
 
@@ -264,11 +287,21 @@ if __name__ == '__main__':
     import sys
     try:
         fn = sys.argv[1]
-        print(fn)
+        # print(fn)
         wdf = wdfReader(fn)
-        for s in dir(wdf):
-            if "__" not in s:
-                print(s, getattr(wdf, s))
+        # for s in dir(wdf):
+            # if "__" not in s:
+                # print(s, getattr(wdf, s))
         wdf.print_info()
+        xdata = wdf.get_xdata()
+        ydata = wdf.get_ydata()
+        spectra = wdf.get_spectra()
+        print(xdata.shape)
+        print(spectra.shape)
+        print(spectra)
     except IndexError:
         raise
+
+    import matplotlib.pyplot as plt
+    # plt.plot(xdata, spectra)
+    # plt.show()

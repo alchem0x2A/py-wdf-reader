@@ -83,6 +83,7 @@ class DataType(IntEnum):
     Flags = 17
     ElapsedTime = 18
 
+
 class Positions(IntEnum):
     blockid = 0x4
     measurement_info = 0x3c                  # 
