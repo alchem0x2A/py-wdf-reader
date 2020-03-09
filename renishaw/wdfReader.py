@@ -80,10 +80,11 @@ class wdfReader(object):
         except:
             print("Failed to get the block information")
         # set xlist and ylist unit and type
-        self.xlist_type, self.xlist_units = self.get_xlist_info()
-        self.ylist_type, self.ylist_units = self.get_ylist_info()
+        self.xlist_type, self.xlist_units = self.get_list_info("x")
+        self.ylist_type, self.ylist_units = self.get_list_info("y")
         # set the data origin, if count is not 0 (for mapping applications)
-        if (self.data_origin_count != None) and (self.data_origin_count != 0):
+        if (self.data_origin_count is not None) \
+           and (self.data_origin_count != 0):
             try:
                 self.block_info["ORGN"] = self.locate_block("ORGN")
             except:
@@ -113,14 +114,15 @@ class wdfReader(object):
             
             s.append("Title:\t{0:s}".format(self.title))
             s.append("Laser Wavelength:\t{0:.1f} nm".format(self.laser_length))
-            for a, t in zip(["point_per_spectrum",
+            for a, t in zip(["count", "point_per_spectrum",
                              "scan_type", "measurement_type",
                              "spectral_units",
                              "xlist_units", "xlist_length",
-                             "ylist_units", "ylist_length"],
-                            [None,
+                             "ylist_units", "ylist_length",
+                             "block_info"],
+                            [None, None,
                              ScanType, MeasurementType, UnitType,
-                             UnitType, None, UnitType, None]):
+                             UnitType, None, UnitType, None, None]):
                 sname = convert_attr_name(a)
                 val = self._get_type_string(a, t)
                 s.append("{0}:\t{1}".format(sname, val))
@@ -211,19 +213,10 @@ class wdfReader(object):
                     "The block with name {} is not found!".format(block_name))
 
     # get the xlist info
-
-    def get_xlist_info(self):
-        pos, size = self.locate_block("XLST")
-        offset = 16
-        self.file_obj.seek(pos + offset)
-        # TODO: strings
-        data_type = self._read_type("int32")
-        data_unit = self._read_type("int32")
-        return (data_type, data_unit)
-
-    # get the ylist info
-    def get_ylist_info(self):
-        pos, size = self.locate_block("YLST")
+    def get_list_info(self, dir):
+        assert dir.uppper() in ["X", "Y"]
+        name = dir.upper + "LST"
+        pos, size = self.locate_block(name)
         offset = 16
         self.file_obj.seek(pos + offset)
         # TODO: strings
