@@ -5,11 +5,35 @@ import struct
 import numpy
 from .types import LenType, DataType, MeasurementType
 from .types import ScanType, UnitType, DataType
-from .types import Positions
+from .types import Offsets
 from .utils import convert_wl, convert_attr_name
+
 
 class wdfReader(object):
     """Reader for Renishaw(TM) WiRE Raman spectroscopy files (.wdf format)
+
+    The wdf file format is separated into several DataBlocks, with starting 4-char 
+    strings such as (incomplete list):
+    `WDF1`: File header for information
+    `DATA`: Spectra data
+    `XLST`: Data for X-axis of data, usually the Raman shift or wavelength
+    `YLST`: Data for Y-axis of data, possibly not important
+    `WMAP`: Information for mapping, e.g. StreamLine or StreamLineHR mapping
+    `MAP `: Mapping information(?)
+    `ORGN`: Data for stage origin
+    `TEXT`: Annotation text etc
+    `WXDA`: ? TODO
+    `WXDM`: ? TODO
+    `ZLDC`: ? TODO
+    `BKXL`: ? TODO
+    `WXCS`: ? TODO
+    `WXIS`: ? TODO
+    `WHTL`: ? TODO
+
+    Following the block name, there are two indicators:
+    Block uid: int32
+    Block size: int64
+
     Args:
     file_name (file) : File object for the wdf file
 
@@ -45,7 +69,6 @@ class wdfReader(object):
         except IOError:
             raise IOError("File {0} does noe exist!".format(file_name))
         # Initialize the properties for the wdfReader class
-        # self.file_obj = file_obj
         self.title = ""
         self.username = ""
         self.measurement_type = ""
@@ -62,46 +85,178 @@ class wdfReader(object):
         self.capacity = None
         self.application_name = ""
         self.application_version = [None]*4
-        self.xlist_length = None
-        self.ylist_length = None
+        self.xlist_length = 0
+        self.ylist_length = 0
         self.accumulation_count = None
-        self.block_info = {}    # each key has value (offset, size)
+        self.block_info = {}    # each key has value (uid, offset, size)
         self.quiet = quiet      # if need to output infomation
         # Parse the header section in the wdf file
-        try:
-            self.parse_header()
-        except:
-            print("Failed to parse the header of file")
-        # Location the data, xlist, ylist and
-        try:
-            self.block_info["DATA"] = self.locate_block("DATA")
-            self.block_info["XLST"] = self.locate_block("XLST")
-            self.block_info["YLST"] = self.locate_block("YLST")
-        except:
-            print("Failed to get the block information")
-        # set xlist and ylist unit and type
-        self.xlist_type, self.xlist_units = self.get_list_info("x")
-        self.ylist_type, self.ylist_units = self.get_list_info("y")
-        # set the data origin, if count is not 0 (for mapping applications)
-        if (self.data_origin_count is not None) \
-           and (self.data_origin_count != 0):
-            try:
-                self.block_info["ORGN"] = self.locate_block("ORGN")
-            except:
-                print("Failed to get the block information")  # TODO correct Block
-        # self.print_info()
-        # TODO
-        # self.origin_list_info = self.get_origin_list_info()
+        self._locate_all_blocks()
+        self._treat_block_data("WDF1")
+        self._treat_block_data("DATA")
+        self._treat_block_data("XLST")
+        self._treat_block_data("YLST")
+
+    def close(self):
+        self.file_obj.close()
+
 
     def _get_type_string(self, attr, data_type):
         """Get the enumerated-data_type as string
         """
         val = getattr(self, attr)  # No error checking
+        print(attr, data_type, val)
         if data_type is None:
             return val
         else:
             return data_type(val).name
 
+    def _read_type(self, type, size=0):
+        """ Unpack struct data for certain type
+        """
+        if type in ["int16", "int32", "int64", "float", "double"]:
+            # unpack into unsigned values
+            fmt_out = LenType["s_" + type].value
+            fmt_in = LenType["l_" + type].value
+            return struct.unpack(fmt_out, self.file_obj.read(fmt_in))[0]
+        elif type == "utf8":
+            # Read utf8 string with determined size block
+            return self.file_obj.read(size).decode("utf8").replace("\x00", "")
+        else:
+            raise ValueError("Unknown data length format!")
+
+    def _locate_single_block(self, pos):
+        """Get block information starting at pos
+        """
+        self.file_obj.seek(pos)
+        block_name = self.file_obj.read(0x4).decode("ascii")
+        if len(block_name) < 4:
+            raise EOFError
+        block_uid = self._read_type("int32")
+        block_size = self._read_type("int64")
+        return block_name, block_uid, block_size
+
+    def _locate_all_blocks(self):
+        """Get information for all data blocks and store them inside self.block_info
+        """
+        curpos = 0
+        finished = False
+        while not finished:
+            try:
+                block_name, block_uid, block_size = self._locate_single_block(
+                    curpos)
+                print(block_name, block_uid, block_size)
+                self.block_info[block_name] = (block_uid, curpos, block_size)
+                curpos += block_size
+            except (EOFError, UnicodeDecodeError):
+                finished = True
+
+    def _treat_block_data(self, block_name):
+        """Get data according to specific block name
+        """
+        if block_name not in self.block_info.keys():
+            print("Block name {0} not present in current measurement".
+                  format(block_name))
+            return
+        actions = {
+            "WDF1": ("_parse_header", ()),
+            "DATA": ("_get_spectra", ()),
+            "XLST": ("_get_xylist", ("X")),
+            "YLST": ("_get_xylist", ("Y")),
+        }
+        func_name, val = actions[block_name]
+        getattr(self, func_name)(*val)
+
+    # The method for reading the info in the file header
+
+    def _parse_header(self):
+        print("Solve block WDF1")
+        self.file_obj.seek(0)   # return to the head
+        # Must make the conversion under python3
+        block_ID = self.file_obj.read(Offsets.block_id).decode("ascii")
+        block_UID = self._read_type("int32")
+        block_len = self._read_type("int64")
+        # First block must be "WDF1"
+        if (block_ID != "WDF1") or (block_UID != 0 and block_UID != 1) \
+           or (block_len != 512):
+            raise ValueError("The wdf file format is incorrect!")
+        # TODO what are the digits in between?
+
+        # The keys from the header
+        self.file_obj.seek(Offsets.measurement_info)  # space
+        self.point_per_spectrum = self._read_type("int32")
+        self.capacity = self._read_type("int64")
+        self.count = self._read_type("int64")
+        self.accumulation_count = self._read_type("int32")
+        self.ylist_length = self._read_type("int32")
+        self.xlist_length = self._read_type("int32")
+        self.data_origin_count = self._read_type("int32")
+        self.application_name = self._read_type("utf8", 24)
+        for i in range(4):
+            self.application_version[i] = self._read_type("int16")
+        self.scan_type = self._read_type("int32")
+        self.measurement_type = self._read_type("int32")
+        # For the units
+        self.file_obj.seek(Offsets.spectral_info)
+        self.spectral_units = self._read_type("int32")
+        self.laser_length = convert_wl(self._read_type("float"))
+        # Username and title
+        self.file_obj.seek(Offsets.file_info)
+        self.username = self._read_type("utf8",
+                                        Offsets.usr_name -
+                                        Offsets.file_info)
+        self.title = self._read_type("utf8",
+                                     Offsets.data_block -
+                                     Offsets.usr_name)
+
+    def _get_xylist(self, dir):
+        """Get information from XLST or YLST blocks
+        """
+        if not dir.upper() in ["X", "Y"]:
+            raise ValueError("Direction argument `dir` must be X or Y!")
+        name = dir.upper() + "LST"
+        uid, pos, size = self.block_info[name]
+        offset = Offsets.block_data
+        self.file_obj.seek(pos + offset)
+        setattr(self, "{0}list_type".format(dir.lower()),
+                self._read_type("int32"))
+        setattr(self, "{0}list_units".format(dir.lower()),
+                self._read_type("int32"))
+        size = getattr(self, "{0}list_length".format(dir.lower()))
+        if size == 0:           # Possibly not started
+            raise ValueError("{0}-List possibly not initialized!".
+                             format(dir.upper()))
+
+        # self.file_obj.seek(pos + offset)
+        data = numpy.fromfile(self.file_obj, dtype="float32", count=size)
+        setattr(self, "{0}data".format(dir.lower()), data)
+        return
+
+    def _get_spectra(self, start=0, end=-1):
+        """Get information from DATA block
+        """
+        if end == -1:           # take all spectra
+            end = self.count-1
+        if (start not in range(self.count)) or (end not in range(self.count)):
+            raise ValueError("Wrong start and end indices of spectra!")
+        if start > end:
+            raise ValueError("Start cannot be larger than end!")
+
+        # Determine start position
+        uid, pos, size = self.block_info["DATA"]
+        pos_start = pos + Offsets.block_data + LenType["l_float"].value * \
+            start * self.point_per_spectrum
+        n_row = end - start + 1
+        self.file_obj.seek(pos_start)
+        spectra_data = numpy.fromfile(
+            self.file_obj, dtype="float32",
+            count=n_row * self.point_per_spectrum)
+        if len(spectra_data.shape) > 1:
+            # The spectra is only 1D array
+            spectra_data = spectra_data.reshape(
+                n_row, spectra_data.size // n_row)
+        setattr(self, "spectra", spectra_data)
+        return
 
     def print_info(self):
         """Print information of the wdf file
@@ -111,9 +266,8 @@ class wdfReader(object):
             s.append("{0} version:\t{1}.{2}.{3}.{4}".format(self.application_name,
                                                             *self.application_version))
 
-            
-            s.append("Title:\t{0:s}".format(self.title))
-            s.append("Laser Wavelength:\t{0:.1f} nm".format(self.laser_length))
+            s.append("Title:\t{0}".format(self.title))
+            s.append("Laser Wavelength:\t{0} nm".format(self.laser_length))
             for a, t in zip(["count", "point_per_spectrum",
                              "scan_type", "measurement_type",
                              "spectral_units",
@@ -129,153 +283,6 @@ class wdfReader(object):
             print("\n".join(s))
 
 
-
-    def _read_type(self, type, size=0):
-        """ Unpack struct data for certain type
-        """
-        if type in ["int16", "int32", "int64", "float", "double"]:
-            # unpack in unsigned values
-            fmt_out = LenType["s_" + type].value
-            fmt_in = LenType["l_" + type].value
-            return struct.unpack(fmt_out, self.file_obj.read(fmt_in))[0]
-        elif type == "utf8":
-            # Read utf8 string with determined size block
-            return self.file_obj.read(size).decode("utf8").replace("\x00", "")
-        else:
-            # TODO: strip the blanks
-            raise ValueError("Unknown data length format!")
-
-    # The method for reading the info in the file header
-    def parse_header(self):
-        self.file_obj.seek(0)   # return to the head
-        # Must make the conversion under python3
-        block_ID = self.file_obj.read(Positions.blockid).decode("ascii")
-        block_UID = self._read_type("int32")
-        block_len = self._read_type("int64")
-        if (block_ID != "WDF1") or (block_UID != 0 and block_UID != 1) \
-           or (block_len != 512):
-            raise ValueError("The wdf file format is incorrect!")
-        # TODO what are the digits in between?
-
-        # The keys from the header
-        self.file_obj.seek(Positions.measurement_info)  # space
-        self.point_per_spectrum = self._read_type("int32")
-        self.capacity = self._read_type("int64")
-        self.count = self._read_type("int64")
-        self.accumulation_count = self._read_type("int32")
-        self.ylist_length = self._read_type("int32")
-        self.xlist_length = self._read_type("int32")
-        self.data_origin_count = self._read_type("int32")
-        self.application_name = self._read_type("utf8", 24)
-        for i in range(4):
-            self.application_version[i] = self._read_type("int16")
-        self.scan_type = self._read_type("int32")
-        self.measurement_type = self._read_type("int32")
-        # For the units
-        self.file_obj.seek(Positions.spectral_info)
-        self.spectral_units = self._read_type("int32")
-        self.laser_length = convert_wl(self._read_type("float"))
-        # Username and title
-        self.file_obj.seek(Positions.file_info)
-        self.username = self._read_type("utf8",
-                                        Positions.usrname -
-                                        Positions.file_info)
-        self.title = self._read_type("utf8",
-                                     Positions.data_block -
-                                     Positions.usrname)
-
-    # locate the data block offset with the corresponding block name
-    def locate_block(self, block_name):
-        if (block_name in self.block_info) and \
-           (self.block_info[block_name] is not None):
-            return self.block_info[block_name]
-        else:
-            # find the block by increment in block size
-            # exhaustive but no need to worry
-            curr_name = None
-            curr_pos = 0
-            next_pos = curr_pos
-            self.file_obj.seek(curr_pos)
-            while (curr_name != block_name) and (curr_name != ""):
-                curr_pos = next_pos
-                curr_name = self.file_obj.read(4).decode(
-                    "ascii")  # Always a 4-str block name
-                uid = self._read_type("int32")
-                size = self._read_type("int64")
-                next_pos += size
-                self.file_obj.seek(next_pos)
-                # print(curr_name, curr_pos, uid, size)
-            # found the id
-            if curr_name == block_name:
-                return (curr_pos, size)
-            else:
-                raise ValueError(
-                    "The block with name {} is not found!".format(block_name))
-
-    # get the xlist info
-    def get_list_info(self, dir):
-        assert dir.uppper() in ["X", "Y"]
-        name = dir.upper + "LST"
-        pos, size = self.locate_block(name)
-        offset = 16
-        self.file_obj.seek(pos + offset)
-        # TODO: strings
-        data_type = self._read_type("int32")
-        data_unit = self._read_type("int32")
-        return (data_type, data_unit)
-
-    # TODO: get the origin list info
-    # def get_origin_list_info(self):
-    #     return (None, None)
-
-    """
-    Important parts for data retrieval
-    """
-
-    def get_xdata(self):
-        pos = self.locate_block("XLST")[0]
-        offset = 24
-        self.file_obj.seek(pos + offset)
-        size = self.xlist_length
-        self.file_obj.seek(pos + offset)
-        x_data = numpy.fromfile(self.file_obj, dtype="float32", count=size)
-        return x_data
-
-    def get_ydata(self):
-        pos = self.locate_block("YLST")[0]
-        offset = 24
-        self.file_obj.seek(pos + offset)
-        size = self.ylist_length
-        self.file_obj.seek(pos + offset)
-        y_data = numpy.fromfile(self.file_obj, dtype="float32", count=size)
-        return y_data
-
-    def get_spectra(self, start=0, end=-1):
-        if end == -1:           # take all spectra
-            end = self.count-1
-        if (start not in range(self.count)) or (end not in range(self.count)):
-            raise ValueError("Wrong start and end indices of spectra!")
-        if start > end:
-            raise ValueError("Start cannot be larger than end!")
-
-        # Determine start position
-        pos_start = self.locate_block("DATA")[0] \
-                    + 16 + LenType["l_float"].value * \
-                    start * self.point_per_spectrum
-        n_row = end - start + 1
-        self.file_obj.seek(pos_start)
-        spectra_data = numpy.fromfile(
-            self.file_obj, dtype="float32",
-            count=n_row*self.point_per_spectrum)
-        if len(spectra_data.shape) == 1:
-            # The spectra is only 1D array
-            return spectra_data
-        else:
-            # Make 2D array
-            spectra_data = spectra_data.reshape(
-                n_row, spectra_data.size // n_row)
-            return spectra_data
-
 if __name__ == '__main__':
     import sys
     try:
@@ -283,15 +290,15 @@ if __name__ == '__main__':
         # print(fn)
         wdf = wdfReader(fn)
         # for s in dir(wdf):
-            # if "__" not in s:
-                # print(s, getattr(wdf, s))
+        # if "__" not in s:
+        # print(s, getattr(wdf, s))
         wdf.print_info()
-        xdata = wdf.get_xdata()
-        ydata = wdf.get_ydata()
-        spectra = wdf.get_spectra()
-        print(xdata.shape)
-        print(spectra.shape)
-        print(spectra)
+        # xdata = wdf.get_xdata()
+        # ydata = wdf.get_ydata()
+        # spectra = wdf.get_spectra()
+        # print(wdf.xdata)
+        # print(wdf.ydata)
+        # print(wdf.spectra)
     except IndexError:
         raise
 
