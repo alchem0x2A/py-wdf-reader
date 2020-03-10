@@ -28,7 +28,7 @@ class wdfReader(object):
     `BKXL`: ? TODO
     `WXCS`: ? TODO
     `WXIS`: ? TODO
-    `WHTL`: ? TODO
+    `WHTL`: An embeded image (?)
 
     Following the block name, there are two indicators:
     Block uid: int32
@@ -50,14 +50,16 @@ class wdfReader(object):
     spectral_units (int) : Unit of spectra, see unit_types
     xlist_type (int) : See unit_types
     xlist_units (int) : See unit_types
-    ylist_type : #TODO
-    ylist_units : #TODO
-    point_per_spectrum : None
-    data_origin_count : None
-    capacity : None
-    xlist_length : None
-    ylist_length : None
-    accumulation_count : None
+    xlist_length (int): Size for the xlist
+    xdata (numpy.array): x-axis data
+    ylist_type (int): Same as xlist_type
+    ylist_units (int): Same as xlist_units
+    ylist_length (int): Same as xlist_length
+    ydata (numpy.array): y-data, possibly not used
+    point_per_spectrum (int): Should be identical to xlist_length
+    data_origin_count (int) : Number of rows in data origin list
+    capacity (int) : Buffer size for each row in data origin list
+    accumulation_count (int) : Single or multiple measurements
     block_info (dict) : Info block at least with following keys
                         DATA, XLST, YLST, ORGN
                         # TODO types?
@@ -96,6 +98,7 @@ class wdfReader(object):
         self._treat_block_data("DATA")
         self._treat_block_data("XLST")
         self._treat_block_data("YLST")
+        self._treat_block_data("ORGN")
 
     def close(self):
         self.file_obj.close()
@@ -105,20 +108,22 @@ class wdfReader(object):
         """Get the enumerated-data_type as string
         """
         val = getattr(self, attr)  # No error checking
-        print(attr, data_type, val)
+        # print(attr, data_type, val)
         if data_type is None:
             return val
         else:
             return data_type(val).name
 
-    def _read_type(self, type, size=0):
+    def _read_type(self, type, size=1):
         """ Unpack struct data for certain type
         """
         if type in ["int16", "int32", "int64", "float", "double"]:
+            if size > 1:
+                raise NotImplementedError("Does not support read number type with size >1")
             # unpack into unsigned values
             fmt_out = LenType["s_" + type].value
             fmt_in = LenType["l_" + type].value
-            return struct.unpack(fmt_out, self.file_obj.read(fmt_in))[0]
+            return struct.unpack(fmt_out, self.file_obj.read(fmt_in * size))[0]
         elif type == "utf8":
             # Read utf8 string with determined size block
             return self.file_obj.read(size).decode("utf8").replace("\x00", "")
@@ -145,7 +150,7 @@ class wdfReader(object):
             try:
                 block_name, block_uid, block_size = self._locate_single_block(
                     curpos)
-                print(block_name, block_uid, block_size)
+                # print(block_name, block_uid, block_size)
                 self.block_info[block_name] = (block_uid, curpos, block_size)
                 curpos += block_size
             except (EOFError, UnicodeDecodeError):
@@ -160,9 +165,10 @@ class wdfReader(object):
             return
         actions = {
             "WDF1": ("_parse_header", ()),
-            "DATA": ("_get_spectra", ()),
-            "XLST": ("_get_xylist", ("X")),
-            "YLST": ("_get_xylist", ("Y")),
+            "DATA": ("_parse_spectra", ()),
+            "XLST": ("_parse_xylist", ("X")),
+            "YLST": ("_parse_xylist", ("Y")),
+            "ORGN": ("_parse_orgin_list", ())
         }
         func_name, val = actions[block_name]
         getattr(self, func_name)(*val)
@@ -170,7 +176,8 @@ class wdfReader(object):
     # The method for reading the info in the file header
 
     def _parse_header(self):
-        print("Solve block WDF1")
+        """Solve block WDF1
+        """
         self.file_obj.seek(0)   # return to the head
         # Must make the conversion under python3
         block_ID = self.file_obj.read(Offsets.block_id).decode("ascii")
@@ -191,7 +198,7 @@ class wdfReader(object):
         self.ylist_length = self._read_type("int32")
         self.xlist_length = self._read_type("int32")
         self.data_origin_count = self._read_type("int32")
-        self.application_name = self._read_type("utf8", 24)
+        self.application_name = self._read_type("utf8", 24)  # Must be "WiRE"
         for i in range(4):
             self.application_version[i] = self._read_type("int16")
         self.scan_type = self._read_type("int32")
@@ -209,7 +216,7 @@ class wdfReader(object):
                                      Offsets.data_block -
                                      Offsets.usr_name)
 
-    def _get_xylist(self, dir):
+    def _parse_xylist(self, dir):
         """Get information from XLST or YLST blocks
         """
         if not dir.upper() in ["X", "Y"]:
@@ -232,7 +239,7 @@ class wdfReader(object):
         setattr(self, "{0}data".format(dir.lower()), data)
         return
 
-    def _get_spectra(self, start=0, end=-1):
+    def _parse_spectra(self, start=0, end=-1):
         """Get information from DATA block
         """
         if end == -1:           # take all spectra
@@ -258,28 +265,68 @@ class wdfReader(object):
         setattr(self, "spectra", spectra_data)
         return
 
+    def _parse_orgin_list(self):
+        """Get information from OriginList
+        Set the following attributes:
+        `self.origin_list_header`: 2D-array
+        `self.origin_list`: origin list
+        """
+        # First confirm origin list type
+        uid, pos, size = self.block_info["ORGN"]
+        self.origin_list_header = [[None, ] * 5
+                                   for i in range(self.data_origin_count)]
+        list_increment = Offsets.origin_increment + \
+            LenType.l_double.value * self.capacity
+        curpos = pos + Offsets.origin_info
+        for i in range(self.data_origin_count):
+            self.file_obj.seek(curpos)
+            p1 = self._read_type("int32")
+            p2 = self._read_type("int32")
+            s = self._read_type("utf8", 0x10)
+            # First index: if the origin list should be exported?
+            self.origin_list_header[i][0] = (p1 >> 31 & 0b1) == 1
+            # Second: Data type of the row
+            self.origin_list_header[i][1] = DataType(p1 & ~(0b1 << 31))
+            # Third: Unit
+            self.origin_list_header[i][2] = UnitType(p2)
+            # Fourth: annotation
+            self.origin_list_header[i][3] = s
+            # Last: the actual data
+            # array = numpy.empty(self.count)
+            array = numpy.array([self._read_type("double")
+                                 for i in range(self.count)])
+            self.origin_list_header[i][4] = array
+            curpos += list_increment
+
+
+
     def print_info(self):
         """Print information of the wdf file
         """
         if not self.quiet:
             s = []
-            s.append("{0} version:\t{1}.{2}.{3}.{4}".format(self.application_name,
-                                                            *self.application_version))
+            s.append("{0:>17s} version:\t{1}.{2}.{3}.{4}".
+                     format(self.application_name,
+                            *self.application_version))
 
-            s.append("Title:\t{0}".format(self.title))
-            s.append("Laser Wavelength:\t{0} nm".format(self.laser_length))
-            for a, t in zip(["count", "point_per_spectrum",
+            s.append("{0:>24s}:\t{1}".format("Title", self.title))
+            s.append("{0:>24s}:\t{1} nm".format("Laser Wavelength",
+                                                self.laser_length))
+            for a, t in zip(["count", "capacity", "point_per_spectrum",
                              "scan_type", "measurement_type",
                              "spectral_units",
                              "xlist_units", "xlist_length",
                              "ylist_units", "ylist_length",
-                             "block_info"],
-                            [None, None,
+                             "data_origin_count",
+                             "block_info",
+                             "origin_list_header"],
+                            [None, None, None,
                              ScanType, MeasurementType, UnitType,
-                             UnitType, None, UnitType, None, None]):
+                             UnitType, None, UnitType, None, None, None,
+                             None]):
                 sname = convert_attr_name(a)
                 val = self._get_type_string(a, t)
-                s.append("{0}:\t{1}".format(sname, val))
+                s.append("{0:>24s}:\t{1}".format(sname, val))
             print("\n".join(s))
 
 
