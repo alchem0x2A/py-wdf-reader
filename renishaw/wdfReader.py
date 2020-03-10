@@ -275,15 +275,18 @@ class wdfReader(object):
         uid, pos, size = self.block_info["ORGN"]
         self.origin_list_header = [[None, ] * 5
                                    for i in range(self.data_origin_count)]
+        self.xpos = numpy.zeros(self.count)
+        self.ypos = numpy.zeros(self.count)
         list_increment = Offsets.origin_increment + \
             LenType.l_double.value * self.capacity
         curpos = pos + Offsets.origin_info
+        
         for i in range(self.data_origin_count):
             self.file_obj.seek(curpos)
             p1 = self._read_type("int32")
             p2 = self._read_type("int32")
             s = self._read_type("utf8", 0x10)
-            # First index: if the origin list should be exported?
+            # First index: is the list x, or y pos?
             self.origin_list_header[i][0] = (p1 >> 31 & 0b1) == 1
             # Second: Data type of the row
             self.origin_list_header[i][1] = DataType(p1 & ~(0b1 << 31))
@@ -296,6 +299,13 @@ class wdfReader(object):
             array = numpy.array([self._read_type("double")
                                  for i in range(self.count)])
             self.origin_list_header[i][4] = array
+            # Set self.xpos or self.ypos
+            if self.origin_list_header[i][1] == DataType.X:
+                self.xpos = array
+            elif self.origin_list_header[i][1] == DataType.Y:
+                self.ypos = array
+            else:
+                pass
             curpos += list_increment
 
 
@@ -319,11 +329,12 @@ class wdfReader(object):
                              "ylist_units", "ylist_length",
                              "data_origin_count",
                              "block_info",
-                             "origin_list_header"],
+                             "origin_list_header",
+                             "xpos", "ypos"],
                             [None, None, None,
                              ScanType, MeasurementType, UnitType,
                              UnitType, None, UnitType, None, None, None,
-                             None]):
+                             None, None, None]):
                 sname = convert_attr_name(a)
                 val = self._get_type_string(a, t)
                 s.append("{0:>24s}:\t{1}".format(sname, val))
