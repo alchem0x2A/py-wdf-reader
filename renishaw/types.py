@@ -97,5 +97,7 @@ class Offsets(IntEnum):
     file_info = 0xd0
     usr_name = 0xf0
     data_block = 0x200
-    
+    # offsets in ORGN block
+    origin_info = 0x14
+    origin_increment = 0x18
     
