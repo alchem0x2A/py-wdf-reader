@@ -100,4 +100,6 @@ class Offsets(IntEnum):
     # offsets in ORGN block
     origin_info = 0x14
     origin_increment = 0x18
-    
+    # offsets in WMAP block
+    wmap_origin = 0x18
+    wmap_wh = 0x30
