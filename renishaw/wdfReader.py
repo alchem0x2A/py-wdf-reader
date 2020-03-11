@@ -47,7 +47,7 @@ class wdfReader(object):
                              0=unknown, 1=single, 2=multi, 3=mapping 
     scan_type (int) : Scan of type, see values in scan_types
     laser_wavenumber (float32) : Wavenumber in cm^-1
-    count (int) : Numbers of experiments (same type)
+    count (int) : Numbers of experiments (same type), can be smaller than capacity
     spectral_units (int) : Unit of spectra, see unit_types
     xlist_type (int) : See unit_types
     xlist_units (int) : See unit_types
@@ -59,7 +59,7 @@ class wdfReader(object):
     ydata (numpy.array): y-data, possibly not used
     point_per_spectrum (int): Should be identical to xlist_length
     data_origin_count (int) : Number of rows in data origin list
-    capacity (int) : Buffer size for each row in data origin list
+    capacity (int) : Max number of spectra
     accumulation_count (int) : Single or multiple measurements
     block_info (dict) : Info block at least with following keys
                         DATA, XLST, YLST, ORGN
@@ -93,6 +93,7 @@ class wdfReader(object):
         self.accumulation_count = None
         self.block_info = {}    # each key has value (uid, offset, size)
         self.quiet = quiet      # if need to output infomation
+        self.is_completed = False
         # Parse the header section in the wdf file
         self._locate_all_blocks()
         self._treat_block_data("WDF1")
@@ -101,11 +102,13 @@ class wdfReader(object):
         self._treat_block_data("YLST")
         self._treat_block_data("ORGN")
         self._treat_block_data("WMAP")
+
+        # Reshape spectra after reading mapping information
+        self._reshape_spectra()
         # self._parse_wmap()
 
     def close(self):
         self.file_obj.close()
-
 
     def _get_type_string(self, attr, data_type):
         """Get the enumerated-data_type as string
@@ -122,7 +125,8 @@ class wdfReader(object):
         """
         if type in ["int16", "int32", "int64", "float", "double"]:
             if size > 1:
-                raise NotImplementedError("Does not support read number type with size >1")
+                raise NotImplementedError(
+                    "Does not support read number type with size >1")
             # unpack into unsigned values
             fmt_out = LenType["s_" + type].value
             fmt_in = LenType["l_" + type].value
@@ -198,6 +202,8 @@ class wdfReader(object):
         self.point_per_spectrum = self._read_type("int32")
         self.capacity = self._read_type("int64")
         self.count = self._read_type("int64")
+        # If count < capacity, this measurement is not completed
+        self.is_completed = (self.count == self.capacity)
         self.accumulation_count = self._read_type("int32")
         self.ylist_length = self._read_type("int32")
         self.xlist_length = self._read_type("int32")
@@ -262,11 +268,11 @@ class wdfReader(object):
         spectra_data = numpy.fromfile(
             self.file_obj, dtype="float32",
             count=n_row * self.point_per_spectrum)
-        if len(spectra_data.shape) > 1:
-            # The spectra is only 1D array
-            spectra_data = spectra_data.reshape(
-                n_row, spectra_data.size // n_row)
-        setattr(self, "spectra", spectra_data)
+        # if len(spectra_data.shape) > 1:
+        # The spectra is only 1D array
+        # spectra_data = spectra_data.reshape(
+        # n_row, spectra_data.size // n_row)
+        self.spectra = spectra_data
         return
 
     def _parse_orgin_list(self):
@@ -284,7 +290,7 @@ class wdfReader(object):
         list_increment = Offsets.origin_increment + \
             LenType.l_double.value * self.capacity
         curpos = pos + Offsets.origin_info
-        
+
         for i in range(self.data_origin_count):
             self.file_obj.seek(curpos)
             p1 = self._read_type("int32")
@@ -321,7 +327,7 @@ class wdfReader(object):
             print("Current measurement does not contain mapping information!",
                   file=stderr)
             return
-        
+
         self.file_obj.seek(pos + Offsets.wmap_origin)
         x_start = self._read_type("float")
         if not numpy.isclose(x_start, self.xpos[0], rtol=1e-4):
@@ -341,19 +347,53 @@ class wdfReader(object):
         self.spectra_w = self._read_type("int32")
         self.spectra_h = self._read_type("int32")
         print(self.spectra_w, self.spectra_h)
+        # print(len(self.xpos), len(self.ypos))
         if len(self.xpos) > 1:
             if not numpy.isclose(x_pad, self.xpos[1] - self.xpos[0],
                                  rtol=1e-4):
                 raise ValueError("WMAP Xpad is not same as in ORGN!")
-        if len(self.ypos) > 1:
-            if not numpy.isclose(y_pad, self.ypos[self.spectra_w] - self.ypos[0],
+        # If ypos smaller than spectra_w,
+        # posssibly not even finished single line scan
+        if len(self.ypos) >= self.spectra_w:
+            if self.spectra_h > 1:
+                loc = self.spectra_w
+            else:
+                loc = 1
+            if not numpy.isclose(y_pad, self.ypos[loc] - self.ypos[0],
                                  rtol=1e-4):
                 raise ValueError("WMAP Ypad is not same as in ORGN!")
-                
+
         self.map_info = (x_start, y_start, x_pad, y_pad)
-        
 
-
+    def _reshape_spectra(self):
+        """Reshape spectra into w * h * self.point_per_spectrum
+        """
+        if not self.is_completed:
+            print("The measurement is not completed, " +
+                  "will try to reshape spectra into count * pps.", file=stderr)
+            try:
+                self.spectra = numpy.reshape(self.spectra,
+                                             (self.count, self.point_per_spectrum))
+            except ValueError:
+                print("Reshaping spectra array failed. Please check.", file=stderr)
+            return
+        elif all(hasattr(self, "spectra_" + n) for n in ("w", "h")):
+            # Is a mapping
+            if self.spectra_w * self.spectra_h != self.count:
+                print("Mapping information from WMAP not corresponding to ORGN! " +
+                      "Will not reshape the spectra", file=stderr)
+                return
+            elif self.spectra_w * self.spectra_h * self.point_per_spectrum \
+                    != len(self.spectra):
+                print("Mapping information from WMAP not corresponding to DATA! " +
+                      "Will not reshape the spectra", file=stderr)
+                return
+            else:
+                self.spectra = numpy.reshape(self.spectra,
+                                             (self.spectra_w, self.spectra_h,
+                                              self.point_per_spectrum))
+        else:
+            return
 
     def print_info(self):
         """Print information of the wdf file
@@ -396,6 +436,8 @@ if __name__ == '__main__':
         # if "__" not in s:
         # print(s, getattr(wdf, s))
         wdf.print_info()
+        print(wdf.spectra.shape)
+        # print(wdf.spectra_w, wdf.spectra_h)
         # xdata = wdf.get_xdata()
         # ydata = wdf.get_ydata()
         # spectra = wdf.get_spectra()
