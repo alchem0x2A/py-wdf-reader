@@ -32,7 +32,7 @@ setup(
     # },
     license="MIT",
     author="alchem0x2A",
-    author_email="",
+    author_email="tian.tian@chem.ethz.ch",
     description="Reading wdf Raman spectroscopy file from Renishaw WiRE",
     long_description=DESCRIPTION,
     long_description_content_type="text/markdown",
