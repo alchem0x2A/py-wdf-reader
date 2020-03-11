@@ -7,6 +7,7 @@ from .types import LenType, DataType, MeasurementType
 from .types import ScanType, UnitType, DataType
 from .types import Offsets
 from .utils import convert_wl, convert_attr_name
+from sys import stderr
 
 
 class wdfReader(object):
@@ -99,6 +100,8 @@ class wdfReader(object):
         self._treat_block_data("XLST")
         self._treat_block_data("YLST")
         self._treat_block_data("ORGN")
+        self._treat_block_data("WMAP")
+        # self._parse_wmap()
 
     def close(self):
         self.file_obj.close()
@@ -161,14 +164,15 @@ class wdfReader(object):
         """
         if block_name not in self.block_info.keys():
             print("Block name {0} not present in current measurement".
-                  format(block_name))
+                  format(block_name), file=stderr)
             return
         actions = {
             "WDF1": ("_parse_header", ()),
             "DATA": ("_parse_spectra", ()),
             "XLST": ("_parse_xylist", ("X")),
             "YLST": ("_parse_xylist", ("Y")),
-            "ORGN": ("_parse_orgin_list", ())
+            "ORGN": ("_parse_orgin_list", ()),
+            "WMAP": ("_parse_wmap", ())
         }
         func_name, val = actions[block_name]
         getattr(self, func_name)(*val)
@@ -307,6 +311,47 @@ class wdfReader(object):
             else:
                 pass
             curpos += list_increment
+
+    def _parse_wmap(self):
+        """Get information about mapping in StreamLine and StreamLineHR
+        """
+        try:
+            uid, pos, size = self.block_info["WMAP"]
+        except KeyError:
+            print("Current measurement does not contain mapping information!",
+                  file=stderr)
+            return
+        
+        self.file_obj.seek(pos + Offsets.wmap_origin)
+        x_start = self._read_type("float")
+        if not numpy.isclose(x_start, self.xpos[0], rtol=1e-4):
+            raise ValueError("WMAP Xpos is not same as in ORGN!")
+        y_start = self._read_type("float")
+        if not numpy.isclose(y_start, self.ypos[0], rtol=1e-4):
+            raise ValueError("WMAP Ypos is not same as in ORGN!")
+        unknown1 = self._read_type("float")
+        x_pad = self._read_type("float")
+        y_pad = self._read_type("float")
+        unknown2 = self._read_type("float")
+        # for i in range(9):
+        #     print(i, self._read_type("int32"))
+        #     self.file_obj.seek(pos + Offsets.wmap_origin + i * 4)
+        #     print(i, self._read_type("float"))
+        # self.file_obj.seek(pos + Offsets.wmap_wh)
+        self.spectra_w = self._read_type("int32")
+        self.spectra_h = self._read_type("int32")
+        print(self.spectra_w, self.spectra_h)
+        if len(self.xpos) > 1:
+            if not numpy.isclose(x_pad, self.xpos[1] - self.xpos[0],
+                                 rtol=1e-4):
+                raise ValueError("WMAP Xpad is not same as in ORGN!")
+        if len(self.ypos) > 1:
+            if not numpy.isclose(y_pad, self.ypos[self.spectra_w] - self.ypos[0],
+                                 rtol=1e-4):
+                raise ValueError("WMAP Ypad is not same as in ORGN!")
+                
+        self.map_info = (x_start, y_start, x_pad, y_pad)
+        
 
 
 
