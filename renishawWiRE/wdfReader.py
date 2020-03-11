@@ -10,7 +10,7 @@ from .utils import convert_wl, convert_attr_name
 from sys import stderr
 
 
-class wdfReader(object):
+class WDFReader(object):
     """Reader for Renishaw(TM) WiRE Raman spectroscopy files (.wdf format)
 
     The wdf file format is separated into several DataBlocks, with starting 4-char 
@@ -106,6 +106,10 @@ class wdfReader(object):
         # Reshape spectra after reading mapping information
         self._reshape_spectra()
         # self._parse_wmap()
+
+        # Finally print the information
+        if not self.quiet:
+            self.print_info()
 
     def close(self):
         self.file_obj.close()
@@ -346,7 +350,7 @@ class wdfReader(object):
         # self.file_obj.seek(pos + Offsets.wmap_wh)
         self.spectra_w = self._read_type("int32")
         self.spectra_h = self._read_type("int32")
-        print(self.spectra_w, self.spectra_h)
+        # print(self.spectra_w, self.spectra_h)
         # print(len(self.xpos), len(self.ypos))
         if len(self.xpos) > 1:
             if not numpy.isclose(x_pad, self.xpos[1] - self.xpos[0],
@@ -400,11 +404,11 @@ class wdfReader(object):
         """
         if not self.quiet:
             s = []
+            s.append("{0:>24s}:\t{1}".format("Title", self.title))
             s.append("{0:>17s} version:\t{1}.{2}.{3}.{4}".
                      format(self.application_name,
                             *self.application_version))
 
-            s.append("{0:>24s}:\t{1}".format("Title", self.title))
             s.append("{0:>24s}:\t{1} nm".format("Laser Wavelength",
                                                 self.laser_length))
             for a, t in zip(["count", "capacity", "point_per_spectrum",
@@ -412,14 +416,13 @@ class wdfReader(object):
                              "spectral_units",
                              "xlist_units", "xlist_length",
                              "ylist_units", "ylist_length",
-                             "data_origin_count",
-                             "block_info",
-                             "origin_list_header",
-                             "xpos", "ypos"],
+                             "data_origin_count"],
+                            
                             [None, None, None,
-                             ScanType, MeasurementType, UnitType,
-                             UnitType, None, UnitType, None, None, None,
-                             None, None, None]):
+                             ScanType, MeasurementType,
+                             UnitType,
+                             UnitType, None,
+                             UnitType, None, None, ]):
                 sname = convert_attr_name(a)
                 val = self._get_type_string(a, t)
                 s.append("{0:>24s}:\t{1}".format(sname, val))
@@ -431,7 +434,7 @@ if __name__ == '__main__':
     try:
         fn = sys.argv[1]
         # print(fn)
-        wdf = wdfReader(fn)
+        wdf = WDFReader(fn)
         # for s in dir(wdf):
         # if "__" not in s:
         # print(s, getattr(wdf, s))
@@ -446,7 +449,5 @@ if __name__ == '__main__':
         # print(wdf.spectra)
     except IndexError:
         raise
-
-    import matplotlib.pyplot as plt
     # plt.plot(xdata, spectra)
     # plt.show()
