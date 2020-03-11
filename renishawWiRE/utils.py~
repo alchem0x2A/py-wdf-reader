@@ -1,0 +1,8 @@
+# Some tiny functions for converting things
+from scipy.constants import c, h
+
+
+def convert_wl(wn):
+    """Convert wavenumber (cm^-1) to nm
+    """
+    
