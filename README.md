@@ -36,7 +36,7 @@ pip install .
 Check the sample codes in `samples/` folder for more details about
 what the package can do.
 
-## Get file infomation
+## Get file information
 
 ## Get single point spectrum / spectra
 
@@ -47,4 +47,17 @@ what the package can do.
 
 
 # TODOs
+
+There are still several functionalities not implemented:
+
+- [] Verify image coordinate
+- [] Z-scan data retrieval
+- [] Testing on various version of Renishaw instruments
+
+# Bug reports
+
+The codes are only tested on the Raman spectra files that generated
+from my personal measurements. If you encounter any peculiar behavior
+of the package please kindly open an issue with your report /
+suggestions. Thx!
 
