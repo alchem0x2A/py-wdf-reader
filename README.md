@@ -38,6 +38,19 @@ what the package can do.
 
 ## Get file information
 
+`renishawWiRE.WDFReader` is the main entry point to get information of a WDF file.
+
+```python
+# The following example shows how to get the info from a WDF file
+# Check examples/ex1_getinfo.py
+from renishawWiRE import WDFReader
+
+#`filename` can be string, file obj or `pathlib.Path`
+filename = "path/to/your/file.wdf"
+reader = WDFReader(filename)
+reader.print_info()
+```
+
 ## Get single point spectrum / spectra
 
 ## Get line scan from StreamLine™ / StreamHR Line™ measurements
@@ -53,6 +66,7 @@ There are still several functionalities not implemented:
 - [ ] Verify image coordinate
 - [ ] Z-scan data retrieval
 - [ ] Testing on various version of Renishaw instruments
+- [ ] Binary utilities
 
 # Bug reports
 
