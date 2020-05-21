@@ -50,9 +50,9 @@ what the package can do.
 
 There are still several functionalities not implemented:
 
-- [] Verify image coordinate
-- [] Z-scan data retrieval
-- [] Testing on various version of Renishaw instruments
+- [ ] Verify image coordinate
+- [ ] Z-scan data retrieval
+- [ ] Testing on various version of Renishaw instruments
 
 # Bug reports
 
