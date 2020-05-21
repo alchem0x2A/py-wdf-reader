@@ -15,6 +15,7 @@ Requirements:
 
 - `python` version > 3.4
 - `Numpy`
+- `Matplotlib` (optional, if you want to plot the spectra in the examples)
 
 ## Versions hosted on PyPI: via `pip`
 
@@ -42,7 +43,7 @@ what the package can do.
 
 ```python
 # The following example shows how to get the info from a WDF file
-# Check examples/ex1_getinfo.py
+# Check `examples/ex1_getinfo.py`
 from renishawWiRE import WDFReader
 
 #`filename` can be string, file obj or `pathlib.Path`
@@ -52,6 +53,21 @@ reader.print_info()
 ```
 
 ## Get single point spectrum / spectra
+
+When the spectrum is single-point (`WDFReader.measurement_type == 1`),
+`WDFReader.xdata` is the spectral points, and `WDFReader.spectra` is
+the accumulated spectrum.
+
+```python
+# Example to read and plot single point spectrum
+# Assume same file as in previous section
+# Check `examples/ex2_sp_spectra.py`
+import matplotlib.pyplot as plt
+reader = WDFReader(filename)
+wavenumber = reader.xdata
+spectra = reader.spectra
+plt.plot(wavenumber, spectra)
+```
 
 ## Get line scan from StreamLine™ / StreamHR Line™ measurements
 
