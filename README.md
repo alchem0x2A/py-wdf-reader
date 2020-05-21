@@ -16,14 +16,14 @@ Requirements:
 - `python` version > 3.4
 - `Numpy`
 
-## Via `pip`
+## Versions hosted on PyPI: via `pip`
 
 ```bash
 # Optionally on a virtualenv
 pip install -U renishawWiRE
 ```
 
-## Via git+pip
+## `HEAD` version: via `git` + `pip`
 
 ```bash
 git clone https://github.com/alchem0x2A/py-wdf-reader.git
@@ -32,6 +32,19 @@ pip install .
 ```
 
 # Basic Usage
+
+Check the sample codes in `samples/` folder for more details about
+what the package can do.
+
+## Get file infomation
+
+## Get single point spectrum / spectra
+
+## Get line scan from StreamLine™ / StreamHR Line™ measurements
+
+## Get line scan from StreamLine™ / StreamHR Line™ measurements
+
+
 
 # TODOs
 
