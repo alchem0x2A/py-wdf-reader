@@ -68,6 +68,9 @@ spectra = reader.spectra
 plt.plot(wavenumber, spectra)
 ```
 
+
+
+
 ## Get line scan from StreamLine™ / StreamHR Line™ measurements
 
 For mapped measurements (line or grid scan),
@@ -86,9 +89,20 @@ spectra = reader.spectra
 print(wn.shape, spectra.shape)
 ```
 
+It is also possible to correlate the xy-coordinates with the
+spectra. For a mapping measurement, `WDFReader.xpos` and
+`WDFReader.ypos` will contain the point-wise x and y coordinates.
 
+```python
+# Check examples/ex4_linxy.py for details
+x = reader.xpos
+y = reader.ypos
+# Cartesian distance
+d = (x ** 2 + y ** 2) ** (1 / 2)
+```
 
 ## Get grid mapping from StreamLine™ / StreamHR Line™ measurements
+
 
 
 
@@ -96,7 +110,8 @@ print(wn.shape, spectra.shape)
 
 There are still several functionalities not implemented:
 
-- [ ] Verify image coordinate
+- [ ] Extract image info
+- [ ] Verify image coordinate superposition
 - [ ] Z-scan data retrieval
 - [ ] Testing on various version of Renishaw instruments
 - [ ] Binary utilities
