@@ -63,13 +63,30 @@ the accumulated spectrum.
 # Assume same file as in previous section
 # Check `examples/ex2_sp_spectra.py`
 import matplotlib.pyplot as plt
-reader = WDFReader(filename)
 wavenumber = reader.xdata
 spectra = reader.spectra
 plt.plot(wavenumber, spectra)
 ```
 
 ## Get line scan from StreamLine™ / StreamHR Line™ measurements
+
+For mapped measurements (line or grid scan),
+`WDFReader.measurement_type == 3`.  The code to get the spectra are
+the same as the one in the single point spectra measurement, instead
+that the `WDFReade.spectra` becomes a matrix with size of `(x_steps,
+1, point_per_spectrum)`:
+
+```python
+# Example to read line scane spectrum
+# Check `examples/ex3_linscan.py`
+filename = "path/to/line-scan.wdf"
+reader = WDFReader(filename)
+wn = reader.xdata
+spectra = reader.spectra
+print(wn.shape, spectra.shape)
+```
+
+
 
 ## Get grid mapping from StreamLine™ / StreamHR Line™ measurements
 

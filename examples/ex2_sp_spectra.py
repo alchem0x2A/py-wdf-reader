@@ -7,14 +7,11 @@
 
 from renishawWiRE import WDFReader
 from pathlib import Path
-import time
 try:
     import matplotlib.pyplot as plt
     plot = True
 except ImportError:
     plot = False
-
-    
 
 
 def main():
