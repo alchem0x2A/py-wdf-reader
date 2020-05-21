@@ -42,7 +42,7 @@ what the package can do.
 
 ## Get line scan from StreamLine™ / StreamHR Line™ measurements
 
-## Get line scan from StreamLine™ / StreamHR Line™ measurements
+## Get grid mapping from StreamLine™ / StreamHR Line™ measurements
 
 
 
