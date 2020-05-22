@@ -29,7 +29,7 @@ class ScanType(IntEnum):
     StepRepeat = 3
     FilterScan = 4
     FilterImage = 5
-    StreamLine = 6 
+    StreamLine = 6
     StreamLineHR = 7
     PointDetector = 8
 
@@ -92,7 +92,7 @@ class Offsets(IntEnum):
     block_id = 0x4
     block_data = 0x10
     # offsets in WDF1 block
-    measurement_info = 0x3c                  # 
+    measurement_info = 0x3c                  #
     spectral_info = 0x98
     file_info = 0xd0
     usr_name = 0xf0
