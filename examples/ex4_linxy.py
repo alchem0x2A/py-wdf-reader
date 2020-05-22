@@ -17,7 +17,7 @@ except ImportError:
 
 def main():
     curdir = Path(__file__).parent.resolve()
-    filename = curdir / "spectra_files" / "ex2.wdf"
+    filename = curdir / "spectra_files" / "line.wdf"
     reader = WDFReader(filename)
     assert reader.measurement_type == 3
 

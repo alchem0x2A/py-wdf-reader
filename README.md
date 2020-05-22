@@ -68,6 +68,14 @@ spectra = reader.spectra
 plt.plot(wavenumber, spectra)
 ```
 
+## Get depth series spectra
+
+A depth series measures contains single point spectra with varied
+Z-depth. For this type `WDFReader.measurement_type == 2`.
+
+*WIP*
+
+
 
 
 
@@ -103,7 +111,26 @@ d = (x ** 2 + y ** 2) ** (1 / 2)
 
 ## Get grid mapping from StreamLine™ / StreamHR Line™ measurements
 
+Finally let's extract the grid-spaced Raman data. For mapping data
+with `spectra_w` pixels in the x-direction and `spectra_h` in the
+y-direction, the matrix of spectra is shaped into `(spectra_h,
+spectra_w, points_per_spectrum)`.
 
+Make sure your xy-coordinates starts from the top left corner.
+
+```python
+# For gridded data, x and y are on rectangle grids
+# check examples/ex5_mapping.py for details
+x = reader.xpos
+y = reader.ypos
+spectra = reader.spectra
+# Use other packages to handle spectra
+# write yourself the function or use a 3rd-party libray
+mapped_data = some_treating_function(spectra, **params)
+# plot mapped data using either imshow
+plt.pcolor(mapped_data, extends=[0, x.max() - x.min(),
+                                 y.max() - y.min(), 0])
+```
 
 
 # TODOs
@@ -112,7 +139,7 @@ There are still several functionalities not implemented:
 
 - [ ] Extract image info
 - [ ] Verify image coordinate superposition
-- [ ] Z-scan data retrieval
+- [ ] Improve series measurement retrieval
 - [ ] Testing on various version of Renishaw instruments
 - [ ] Binary utilities
 

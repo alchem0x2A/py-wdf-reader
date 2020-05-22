@@ -2,7 +2,7 @@
 
 ################################################################
 # The example shows how to get single spectrum from wdf file   #
-# spectra_files/ex1.wdf contains 1 single-point Raman spectrum #
+# spectra_files/sp.wdf contains 1 single-point Raman spectrum #
 ################################################################
 
 from renishawWiRE import WDFReader
@@ -16,7 +16,7 @@ except ImportError:
 
 def main():
     curdir = Path(__file__).parent.resolve()
-    filename = curdir / "spectra_files" / "ex1.wdf"
+    filename = curdir / "spectra_files" / "sp.wdf"
     reader = WDFReader(filename)
     print("Measurement type is ", reader.measurement_type)
     print("{0} Spectra obtained with {1} accumulations each".
