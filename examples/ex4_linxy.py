@@ -7,7 +7,7 @@
 
 import numpy as np
 from renishawWiRE import WDFReader
-from pathlib import Path
+from _path import curdir, imgdir
 try:
     import matplotlib.pyplot as plt
     plot = True
@@ -16,7 +16,6 @@ except ImportError:
 
 
 def main():
-    curdir = Path(__file__).parent.resolve()
     filename = curdir / "spectra_files" / "line.wdf"
     reader = WDFReader(filename)
     assert reader.measurement_type == 3
@@ -42,12 +41,13 @@ def main():
     if plot is True:
         # Level the spectra with baseline intensity
         plt.figure()
-        plt.plot(d, sum_cnt, "-o")
+        plt.plot(d - d[0], sum_cnt, "-o")
         plt.xlabel("Distance (μm)")
         plt.ylabel("Sum. Intensity (ccd counts)")
-        plt.title("Results from ex2.wdf")
+        plt.title("Results from line.wdf")
         plt.show(block=False)
         plt.pause(3)
+        plt.savefig(imgdir / "linxy.png", dpi=100)
         plt.close()
     else:
         print("Wavenumber is like:", wn)

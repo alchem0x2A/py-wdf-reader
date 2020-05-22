@@ -8,7 +8,7 @@
 
 import numpy as np
 from renishawWiRE import WDFReader
-from pathlib import Path
+from _path import curdir, imgdir
 try:
     import matplotlib.pyplot as plt
     plot = True
@@ -26,7 +26,6 @@ def peak_in_range(spectra, wn, range, method="max", **params):
 
 
 def main():
-    curdir = Path(__file__).parent.resolve()
     filename = curdir / "spectra_files" / "mapping.wdf"
     reader = WDFReader(filename)
     assert reader.measurement_type == 3
@@ -70,7 +69,8 @@ def main():
         cb.ax.set_title("Ratio")
         plt.tight_layout()
         plt.show(block=False)
-        plt.pause(5)
+        plt.pause(3)
+        plt.savefig(imgdir / "mapping.png", dpi=100)
         plt.close()
     else:
         pass
