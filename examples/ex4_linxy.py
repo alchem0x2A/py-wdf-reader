@@ -33,11 +33,10 @@ def main():
     d = np.sqrt(x ** 2 + y ** 2)
     wn = reader.xdata
     spectra = reader.spectra
-    spectra_tr = spectra[:, 0, :]
-    spectra_tr = spectra_tr - spectra_tr.min(axis=1, keepdims=True)
+    spectra = spectra - spectra.min(axis=1, keepdims=True)
     # Simply get accumulated counts between 1560 and 1620 cm^-1
     pos = np.where((wn >= 1560) & (wn <= 1620))[0]
-    cut = spectra_tr[:, pos]
+    cut = spectra[:, pos]
     sum_cnt = np.sum(cut, axis=1)
     
     if plot is True:
@@ -53,7 +52,7 @@ def main():
     else:
         print("Wavenumber is like:", wn)
         print("Distance is like:", d)
-        print("Spectra matrix is like: \n", spectra_tr[:, 0, :])
+        print("Spectra matrix is like: \n", spectra)
 
     return
 
