@@ -1,3 +1,4 @@
 spectra_files/sp.wdf filter=lfs diff=lfs merge=lfs -text
 spectra_files/depth.wdf filter=lfs diff=lfs merge=lfs -text
 spectra_files/line.wdf filter=lfs diff=lfs merge=lfs -text
+spectra_files/*.wdf filter=lfs diff=lfs merge=lfs -text
