@@ -7,7 +7,7 @@
 
 import numpy as np
 from renishawWiRE import WDFReader
-from pathlib import Path
+from _path import curdir, imgdir
 try:
     import matplotlib.pyplot as plt
     plot = True
@@ -16,7 +16,6 @@ except ImportError:
 
 
 def main():
-    curdir = Path(__file__).parent.resolve()
     filename = curdir / "spectra_files" / "line.wdf"
     reader = WDFReader(filename)
     assert reader.measurement_type == 3
@@ -31,16 +30,18 @@ def main():
         spectra = spectra - spectra.min(axis=1, keepdims=True)
         # Need to revert matrix for plotting
         spectra = spectra.T
-        plt.figure()
-        # plot the first 10 spectra
-        for i in range(10):
+        plt.figure(figsize=(6, 4))
+        # plot the first 5 spectra
+        for i in range(5):
             plt.plot(wn, spectra[:, i], label="{0:d}".format(i))
         plt.legend()
         plt.xlabel("Wavenumber (1/cm)")
         plt.ylabel("Intensity (ccd counts)")
-        plt.title("Spectra from ex2.wdf")
+        plt.title("Spectra from line.wdf")
         plt.show(block=False)
         plt.pause(3)
+        plt.tight_layout()
+        plt.savefig(imgdir / "linscan.png", dpi=100)
         plt.close()
     else:
         print("Wavenumber is like:", wn)

@@ -6,7 +6,7 @@
 ################################################################
 
 from renishawWiRE import WDFReader
-from pathlib import Path
+from _path import curdir, imgdir
 try:
     import matplotlib.pyplot as plt
     plot = True
@@ -15,7 +15,6 @@ except ImportError:
 
 
 def main():
-    curdir = Path(__file__).parent.resolve()
     filename = curdir / "spectra_files" / "sp.wdf"
     reader = WDFReader(filename)
     print("Measurement type is ", reader.measurement_type)
@@ -30,13 +29,15 @@ def main():
     print(wn.shape, sp.shape)
     if plot:
         print("Use matplotlib to plot spectrum")
-        plt.figure()
+        plt.figure(figsize=(6, 4))
         plt.plot(wn, sp, label="Spectrum 1")
         plt.xlabel("Wavenumber (1/cm)")
         plt.ylabel("Intensity (ccd counts)")
-        plt.title("Spectrum from ex1.wdf")
+        plt.title("Spectrum from sp.wdf")
         plt.show(block=False)
+        plt.tight_layout()
         plt.pause(3)
+        plt.savefig(imgdir / "sp_spectra.png", dpi=100)
         plt.close()
     else:
         print("No matplotlib, simply print the values")
