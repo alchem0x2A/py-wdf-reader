@@ -26,6 +26,10 @@ pip install -U renishawWiRE
 
 ## `HEAD` version: via `git` + `pip`
 
+**Caution!** cloning the repo (when you have `git-lfs` installed) will
+also get all the example Raman spectra files which ends up to be
+around 40 MiB.
+
 ```bash
 git clone https://github.com/alchem0x2A/py-wdf-reader.git
 cd py-wdf-reader
@@ -127,7 +131,7 @@ spectra = reader.spectra
 # Use other packages to handle spectra
 # write yourself the function or use a 3rd-party libray
 mapped_data = some_treating_function(spectra, **params)
-# plot mapped data using either imshow
+# plot mapped data using plt.imshow
 plt.pcolor(mapped_data, extends=[0, x.max() - x.min(),
                                  y.max() - y.min(), 0])
 ```
