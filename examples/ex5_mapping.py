@@ -40,10 +40,7 @@ def main():
     y = reader.ypos
     w = reader.spectra_w
     h = reader.spectra_h
-    spectra = spectra.reshape((h, w, len(wn)))
     # w and h are the measure in xy coordinates
-    xx = x.reshape((h, w))
-    yy = y.reshape((h, w))
     # Level the spectra
     spectra = spectra - np.min(spectra, axis=2, keepdims=True)
     peaks_a = peak_in_range(spectra, wn, [1295, 1340])
@@ -64,8 +61,8 @@ def main():
         # Right plot histogram of Peak A/B mapping
         plt.subplot(122)
         plt.imshow(ratio, interpolation="bicubic",
-                   extent=[0, xx.max() - xx.min(),
-                           yy.max() - yy.min(), 0],
+                   extent=[0, x.max() - x.min(),
+                           y.max() - y.min(), 0],
                    vmin=0.5, vmax=1.5)
         plt.xlabel("x [μm]")
         plt.ylabel("y [μm]")

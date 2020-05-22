@@ -377,9 +377,11 @@ class WDFReader(object):
                   "will try to reshape spectra into count * pps.", file=stderr)
             try:
                 self.spectra = numpy.reshape(self.spectra,
-                                             (self.count, self.point_per_spectrum))
+                                             (self.count,
+                                              self.point_per_spectrum))
             except ValueError:
-                print("Reshaping spectra array failed. Please check.", file=stderr)
+                print("Reshaping spectra array failed. Please check.",
+                      file=stderr)
             return
         elif all(hasattr(self, "spectra_" + n) for n in ("w", "h")):
             # Is a mapping
@@ -393,9 +395,17 @@ class WDFReader(object):
                       "Will not reshape the spectra", file=stderr)
                 return
             else:
-                self.spectra = numpy.reshape(self.spectra,
-                                             (self.spectra_w, self.spectra_h,
-                                              self.point_per_spectrum))
+                # Should be h rows * w columns. numpy.ndarray is row first
+                # Reshape to 3D matrix when doing 2D mapping
+                if (self.spectra_h > 1) and (self.spectra_w > 1):
+                    self.spectra = numpy.reshape(self.spectra,
+                                                 (self.spectra_h, self.spectra_w,
+                                                  self.point_per_spectrum))
+                # otherwise it is a line scan or series
+                else:
+                    self.spectra = numpy.reshape(self.spectra,
+                                                 (self.count,
+                                                  self.point_per_spectrum))
         else:
             return
 
@@ -417,7 +427,7 @@ class WDFReader(object):
                              "xlist_units", "xlist_length",
                              "ylist_units", "ylist_length",
                              "data_origin_count"],
-                            
+
                             [None, None, None,
                              ScanType, MeasurementType,
                              UnitType,
