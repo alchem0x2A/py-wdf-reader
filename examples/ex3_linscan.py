@@ -28,13 +28,13 @@ def main():
     print(wn.shape, spectra.shape)
     if plot is True:
         # Level the spectra with baseline intensity
-        spectra_tr = spectra[:, 0, :]
-        spectra_tr = spectra_tr - spectra_tr.min(axis=1, keepdims=True)
-        spectra_tr = spectra_tr.T
+        spectra = spectra - spectra.min(axis=1, keepdims=True)
+        # Need to revert matrix for plotting
+        spectra = spectra.T
         plt.figure()
         # plot the first 10 spectra
         for i in range(10):
-            plt.plot(wn, spectra_tr[:, i], label="{0:d}".format(i))
+            plt.plot(wn, spectra[:, i], label="{0:d}".format(i))
         plt.legend()
         plt.xlabel("Wavenumber (1/cm)")
         plt.ylabel("Intensity (ccd counts)")
@@ -44,7 +44,7 @@ def main():
         plt.close()
     else:
         print("Wavenumber is like:", wn)
-        print("Spectra matrix is like: \n", spectra[:, 0, :])
+        print("Spectra matrix is like: \n", spectra)
 
     return
 
