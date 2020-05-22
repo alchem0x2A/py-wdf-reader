@@ -2,7 +2,7 @@
 
 ################################################################
 # The example shows how to retrieve metadata from wdf file     #
-# spectra_files/ex1.wdf contains 1 single-point Raman spectrum #
+# spectra_files/sp.wdf contains 1 single-point Raman spectrum #
 ################################################################
 
 from renishawWiRE import WDFReader
@@ -11,7 +11,7 @@ from pathlib import Path
 
 def main():
     curdir = Path(__file__).parent.resolve()
-    filename = curdir / "spectra_files" / "ex1.wdf"
+    filename = curdir / "spectra_files" / "sp.wdf"
     reader = WDFReader(filename)
     reader.print_info()
     return
