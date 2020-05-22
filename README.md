@@ -72,7 +72,8 @@ spectra = reader.spectra
 plt.plot(wavenumber, spectra)
 ```
 
-An example is shown below:
+An [example](examples/ex2_sp_spectra.py) is shown below:
+
 ![sp spectrum](examples/img/sp_spectra.png)
 
 ## Get depth series spectra
@@ -105,7 +106,9 @@ wn = reader.xdata
 spectra = reader.spectra
 print(wn.shape, spectra.shape)
 ```
-An example is shown below:
+
+An [example](examples/ex3_linscan.py) of the line scane is shown below:
+
 ![line scan](examples/img/linscan.png)
 
 It is also possible to correlate the xy-coordinates with the
@@ -143,7 +146,8 @@ mapped_data = some_treating_function(spectra, **params)
 plt.pcolor(mapped_data, extends=[0, x.max() - x.min(),
                                  y.max() - y.min(), 0])
 ```
-An example is shown below:
+An [example](examples/ex5_mapping.py) of mapping data is shown below:
+
 ![mapping](examples/img/mapping.png)
 
 
