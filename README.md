@@ -38,7 +38,7 @@ pip install .
 
 # Basic Usage
 
-Check the sample codes in `samples/` folder for more details about
+Check the sample codes in `examples/` folder for more details about
 what the package can do.
 
 ## Get file information
