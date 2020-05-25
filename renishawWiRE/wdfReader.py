@@ -3,6 +3,7 @@
 from __future__ import print_function
 import struct
 import numpy
+import io
 from .types import LenType, DataType, MeasurementType
 from .types import ScanType, UnitType, DataType
 from .types import Offsets
@@ -102,6 +103,7 @@ class WDFReader(object):
         self._treat_block_data("YLST")
         self._treat_block_data("ORGN")
         self._treat_block_data("WMAP")
+        self._treat_block_data("WHTL")
 
         # Reshape spectra after reading mapping information
         self._reshape_spectra()
@@ -180,7 +182,8 @@ class WDFReader(object):
             "XLST": ("_parse_xylist", ("X")),
             "YLST": ("_parse_xylist", ("Y")),
             "ORGN": ("_parse_orgin_list", ()),
-            "WMAP": ("_parse_wmap", ())
+            "WMAP": ("_parse_wmap", ()),
+            "WHTL": ("_parse_img", ()),
         }
         func_name, val = actions[block_name]
         getattr(self, func_name)(*val)
@@ -368,6 +371,22 @@ class WDFReader(object):
                 raise ValueError("WMAP Ypad is not same as in ORGN!")
 
         self.map_info = (x_start, y_start, x_pad, y_pad)
+
+    def _parse_img(self):
+        """Extract the white-light JPEG image
+        """
+        try:
+            uid, pos, size = self.block_info["WHTL"]
+        except KeyError:
+            print("The wdf file does not contain an image",
+                  file=stderr)
+            return
+
+        # Read the bytes. `self.img` is a wrapped IO object mimicking a file
+        self.file_obj.seek(pos + Offsets.jpeg_header)
+        self.img_bytes = self.file_obj.read(size - Offsets.jpeg_header)
+        self.img = io.BytesIO(self.img_bytes)
+        return
 
     def _reshape_spectra(self):
         """Reshape spectra into w * h * self.point_per_spectrum

@@ -103,3 +103,5 @@ class Offsets(IntEnum):
     # offsets in WMAP block
     wmap_origin = 0x18
     wmap_wh = 0x30
+    # offsets in WHTL block
+    jpeg_header = 0x10
