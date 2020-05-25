@@ -42,6 +42,8 @@ and overwrite the dummy files within `examples/spectra_files/`:
 wget https://github.com/alchem0x2A/py-wdf-reader/releases/download/binary/spectra_files.zip 
 unzip -o spectra_files.zip -d examples/ 
 rm spectra_files.zip
+# To avoid unexpected pushing to repo due to large file size
+git update-index --skip-worktree examples/spectra_files.wdf
 ```
 
 # Basic Usage
