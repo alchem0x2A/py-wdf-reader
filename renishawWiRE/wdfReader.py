@@ -68,7 +68,7 @@ class WDFReader(object):
 
     def __init__(self, file_name, quiet=False):
         try:
-            self.file_obj = open(file_name, "rb")
+            self.file_obj = open(str(file_name), "rb")
         except IOError:
             raise IOError("File {0} does noe exist!".format(file_name))
         # Initialize the properties for the wdfReader class
