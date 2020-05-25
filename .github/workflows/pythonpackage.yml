@@ -45,4 +45,6 @@ jobs:
         unzip -o spectra_files.zip -d examples/ 
         rm spectra_files.zip
         cd examples/
+        ls -al
+        pwd
         for f in $(ls *.py); do python $f; done
