@@ -5,7 +5,7 @@ from setuptools import find_packages, setup
 from setuptools.command.install import install
 
 NAME = "renishawWiRE"
-VERSION = "0.1.2"
+VERSION = "0.1.3"
 DESCRIPTION = open("README.md", encoding="utf-8").read()
 
 
@@ -39,12 +39,10 @@ setup(
     install_requires=["numpy"],
     classifiers=[
         "Programming Language :: Python",
-        "Programming Language :: Python :: 3.4",
-        "Programming Language :: Python :: 3.5",
         "Programming Language :: Python :: 3.6",
         "Programming Language :: Python :: 3.7",
         "Programming Language :: Python :: 3.8",
     ],
-    python_requires=">=3.4",
+    python_requires=">=3.6",
     cmdclass={"verify": VerifyVersionCommand},
 )

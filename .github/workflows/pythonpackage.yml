@@ -15,7 +15,7 @@ jobs:
     runs-on: ubuntu-latest
     strategy:
       matrix:
-        python-version: [3.5, 3.6, 3.7, 3.8]
+        python-version: [3.6, 3.7, 3.8]
 
     steps:
     - uses: actions/checkout@v2
@@ -34,6 +34,17 @@ jobs:
         flake8 . --count --select=E9,F63,F7,F82 --show-source --statistics
         # exit-zero treats all errors as warnings. The GitHub editor is 127 chars wide
         flake8 . --count --exit-zero --max-complexity=10 --max-line-length=127 --statistics
-#     - name: Test with pytest
-#       run: |
-#         pytest
+    - name: Test build
+      run: |
+        # pip local
+        pip install .
+        pip install matplotlib
+    - name: Testing examples
+      run: |
+        wget -nv https://github.com/alchem0x2A/py-wdf-reader/releases/download/binary/spectra_files.zip 
+        unzip -o spectra_files.zip -d examples/ 
+        rm spectra_files.zip
+        cd examples/
+        ls -al
+        pwd
+        for f in $(ls *.py); do python $f; done

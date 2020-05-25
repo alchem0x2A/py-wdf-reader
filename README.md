@@ -13,7 +13,7 @@ Ideas for reverse-engineering the WDF format is inspired by:
 
 Requirements:
 
-- `python` version > 3.4
+- `python` version >= 3.6
 - `Numpy`
 - `Matplotlib` (optional, if you want to plot the spectra in the examples)
 
