@@ -26,14 +26,22 @@ pip install -U renishawWiRE
 
 ## `HEAD` version: via `git` + `pip`
 
-**Caution!** cloning the repo (when you have `git-lfs` installed) will
-also get all the example Raman spectra files which ends up to be
-around 40 MiB.
+To install the package without examples, run the following commands:
 
 ```bash
 git clone https://github.com/alchem0x2A/py-wdf-reader.git
 cd py-wdf-reader
 pip install .
+```
+
+Additionally if you want to test the examples, download them from the
+[binary
+release](https://github.com/alchem0x2A/py-wdf-reader/releases/download/binary/spectra_files.zip)
+and overwrite the dummy files within `examples/spectra_files/`:
+```bash
+wget https://github.com/alchem0x2A/py-wdf-reader/releases/download/binary/spectra_files.zip 
+unzip -o spectra_files.zip -d examples/ 
+rm spectra_files.zip
 ```
 
 # Basic Usage
