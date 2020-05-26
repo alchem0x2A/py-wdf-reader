@@ -1,3 +1,4 @@
+# `renishawWiRE` Renishaw Raman spectroscopy parser in python
 ![License: GPL v3](https://img.shields.io/badge/License-GPLv3-blue.svg)
 [![PyPI version](https://badge.fury.io/py/renishawWiRE.svg)](https://badge.fury.io/py/renishawWiRE)
 ![actions](https://github.com/alchem0x2A/py-wdf-reader/workflows/Python%20package/badge.svg)
