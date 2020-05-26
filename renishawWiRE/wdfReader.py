@@ -411,10 +411,38 @@ class WDFReader(object):
                 # Default is microns (5)
                 self.img_dimension_unit = UnitType(
                     exif_header[ExifTags.FocalPlaneResolutionUnit])
+                # Give the box for cropping
+                # Following the PIL manual
+                # (left, upper, right, lower)
+                self.img_cropbox = self._calc_crop_box()
+
             except KeyError:
                 print("Some keys in white light image header cannot be read!",
                       file=stderr)
         return
+
+    def _calc_crop_box(self):
+        """Helper function to calculate crop box
+        """
+        def _proportion(x, minmax, pixels):
+            """Get proportional pixels"""
+            min, max = minmax
+            return int(pixels * (x - min) / (max - min))
+
+        pil_img = PIL.Image.open(self.img)
+        w_, h_ = self.img_dimensions
+        x0_, y0_ = self.img_origins
+        pw = pil_img.width
+        ph = pil_img.height
+        map_xl = self.xpos.min()
+        map_xr = self.xpos.max()
+        map_yt = self.ypos.min()
+        map_yb = self.ypos.max()
+        left = _proportion(map_xl, (x0_, x0_ + w_), pw)
+        right = _proportion(map_xr, (x0_, x0_ + w_), pw)
+        top = _proportion(map_yt, (y0_, y0_ + h_), ph)
+        bottom = _proportion(map_yb, (y0_, y0_ + h_), ph)
+        return (left, top, right, bottom)
 
     def _reshape_spectra(self):
         """Reshape spectra into w * h * self.point_per_spectrum
