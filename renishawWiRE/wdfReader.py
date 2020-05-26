@@ -6,9 +6,13 @@ import numpy
 import io
 from .types import LenType, DataType, MeasurementType
 from .types import ScanType, UnitType, DataType
-from .types import Offsets
+from .types import Offsets, ExifTags
 from .utils import convert_wl, convert_attr_name
 from sys import stderr
+try:
+    import PIL
+except ImportError:
+    PIL = None
 
 
 class WDFReader(object):
@@ -374,6 +378,8 @@ class WDFReader(object):
 
     def _parse_img(self):
         """Extract the white-light JPEG image
+           The size of while-light image is coded in its EXIF
+           Use PIL to parse the EXIF information
         """
         try:
             uid, pos, size = self.block_info["WHTL"]
@@ -384,8 +390,30 @@ class WDFReader(object):
 
         # Read the bytes. `self.img` is a wrapped IO object mimicking a file
         self.file_obj.seek(pos + Offsets.jpeg_header)
-        self.img_bytes = self.file_obj.read(size - Offsets.jpeg_header)
-        self.img = io.BytesIO(self.img_bytes)
+        img_bytes = self.file_obj.read(size - Offsets.jpeg_header)
+        self.img = io.BytesIO(img_bytes)
+        # Handle image dimension if PIL is present
+        if PIL is not None:
+            pil_img = PIL.Image.open(self.img)
+            exif_header = dict(pil_img.getexif())
+            try:
+                # Get the width and height of image
+                w_ = exif_header[ExifTags.FocalPlaneXResolution]
+                h_ = exif_header[ExifTags.FocalPlaneYResolution]
+                x_org_, y_org_ = exif_header[ExifTags.FocalPlaneXYOrigins]
+                # The dimensions (width, height)
+                # with unit `img_dimension_unit`
+                self.img_dimensions = numpy.array([w_[0] / w_[1],
+                                                   h_[0] / h_[1]])
+                # Origin of image is at upper right corner
+                self.img_origins = numpy.array([x_org_[0] / x_org_[1],
+                                                y_org_[0] / y_org_[1]])
+                # Default is microns (5)
+                self.img_dimension_unit = UnitType(
+                    exif_header[ExifTags.FocalPlaneResolutionUnit])
+            except KeyError:
+                print("Some keys in white light image header cannot be read!",
+                      file=stderr)
         return
 
     def _reshape_spectra(self):

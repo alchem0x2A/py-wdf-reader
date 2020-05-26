@@ -103,3 +103,4 @@ ENV/
 *.wdf
 /.piped
 /.downloaded
+.DS_Store
