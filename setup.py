@@ -31,7 +31,7 @@ setup(
     # project_urls={
         # "Changelog": ("https://github.com/pennlabs/github-project/blob/master/CHANGELOG.md")
     # },
-    license="MIT",
+    license="GPLv3.0",
     author="alchem0x2A",
     author_email="tian.tian@chem.ethz.ch",
     description="Reading wdf Raman spectroscopy file from Renishaw WiRE",
