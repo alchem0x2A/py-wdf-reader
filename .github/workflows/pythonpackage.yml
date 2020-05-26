@@ -36,8 +36,10 @@ jobs:
         flake8 . --count --exit-zero --max-complexity=10 --max-line-length=127 --statistics
     - name: Get Tag
       run: |
-          echo ::set-env name=GIT_TAG::${GITHUB_REF/refs\/tags\//}
-          python -c "import os; print(os.getenv(\"GIT_TAG\"))"
+          echo ::set-env name=GIT_TAG::${GITHUB_REF#refs/tags/}
+    - name: Test tag
+      run: |
+        python -c "import os; print(os.getenv(\"GIT_TAG\"))"
     - name: Testing examples
       run: |
         make examples
