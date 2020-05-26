@@ -1,16 +1,16 @@
 #! /usr/bin/env python3
 
-###########################################################
-# The example shows how to get mapping  data              #
-# The peak ratio at 1315 cm^-1 and 1380 cm^-1 are plotted #
-# Details see Small 14, 1804006 (2018).                   #
-###########################################################
+########################################################
+# The example shows on top of example 5 how to extract #
+# the white-light image                                #
+########################################################
 
 import numpy as np
 from renishawWiRE import WDFReader
 from _path import curdir, imgdir
 try:
     import matplotlib.pyplot as plt
+    import matplotlib.image as mpimg
     plot = True
 except ImportError:
     plot = False
@@ -34,11 +34,13 @@ def main():
     print("The size of mapping is {0:d} * {1:d}".
           format(reader.spectra_w,
                  reader.spectra_h))
+
     print(wn.shape, spectra.shape)
-    x = reader.xpos
-    y = reader.ypos
-    w = reader.spectra_w
-    h = reader.spectra_h
+    map_x = reader.xpos
+    map_y = reader.ypos
+    map_w = map_x.max() - map_x.min()
+    map_h = map_y.max() - map_y.min()
+
     # w and h are the measure in xy coordinates
     # Level the spectra
     spectra = spectra - np.min(spectra, axis=2, keepdims=True)
@@ -46,22 +48,35 @@ def main():
     peaks_b = peak_in_range(spectra, wn, [1350, 1400])
 
     ratio = peaks_a / peaks_b
-    ratio_fl = ratio.flatten()
 
     if plot is True:
+        # Must provide the format to read the optical image
+        img = mpimg.imread(reader.img, format="jpg")
+        img_x0, img_y0 = reader.img_origins
+        img_w, img_h = reader.img_dimensions
+        print(reader.img_dimensions)
         plt.figure(figsize=(10, 5))
 
-        # Left plot histogram of Peak A/B ratio
+        # Left, plot the white light image and rectangle area
         plt.subplot(121)
-        plt.hist(ratio_fl, bins=50, range=(0.1, 2))
-        plt.xlabel("Ratio peak A / peak B")
-        plt.ylabel("Counts")
+        # Show the image with upper origin extent See
+        # https://matplotlib.org/3.1.1/gallery/text_labels_and_annotations/text_alignment.html
+        plt.imshow(img, extent=(img_x0, img_x0 + img_w,
+                                img_y0 + img_h, img_y0))
+        # Add rectangle for marking
+        r = plt.Rectangle(xy=(map_x.min(), map_y.min()),
+                          width=map_w,
+                          height=map_h,
+                          fill=False)
+        plt.gca().add_patch(r)
+        plt.xlabel("Stage X [μm]")
+        plt.ylabel("Stage Y [μm]")
 
         # Right plot histogram of Peak A/B mapping
         plt.subplot(122)
         plt.imshow(ratio, interpolation="bicubic",
-                   extent=[0, x.max() - x.min(),
-                           y.max() - y.min(), 0],
+                   extent=[0, map_w,
+                           map_h, 0],
                    vmin=0.5, vmax=1.5)
         plt.xlabel("Mapping x [μm]")
         plt.ylabel("Mapping y [μm]")
@@ -70,7 +85,7 @@ def main():
         plt.tight_layout()
         plt.show(block=False)
         plt.pause(3)
-        plt.savefig(imgdir / "mapping.png", dpi=100)
+        plt.savefig(imgdir / "map-optical.png", dpi=100)
         plt.close()
     else:
         pass

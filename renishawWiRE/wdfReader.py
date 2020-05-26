@@ -3,11 +3,16 @@
 from __future__ import print_function
 import struct
 import numpy
+import io
 from .types import LenType, DataType, MeasurementType
 from .types import ScanType, UnitType, DataType
-from .types import Offsets
+from .types import Offsets, ExifTags
 from .utils import convert_wl, convert_attr_name
 from sys import stderr
+try:
+    import PIL
+except ImportError:
+    PIL = None
 
 
 class WDFReader(object):
@@ -102,6 +107,7 @@ class WDFReader(object):
         self._treat_block_data("YLST")
         self._treat_block_data("ORGN")
         self._treat_block_data("WMAP")
+        self._treat_block_data("WHTL")
 
         # Reshape spectra after reading mapping information
         self._reshape_spectra()
@@ -180,7 +186,8 @@ class WDFReader(object):
             "XLST": ("_parse_xylist", ("X")),
             "YLST": ("_parse_xylist", ("Y")),
             "ORGN": ("_parse_orgin_list", ()),
-            "WMAP": ("_parse_wmap", ())
+            "WMAP": ("_parse_wmap", ()),
+            "WHTL": ("_parse_img", ()),
         }
         func_name, val = actions[block_name]
         getattr(self, func_name)(*val)
@@ -368,6 +375,74 @@ class WDFReader(object):
                 raise ValueError("WMAP Ypad is not same as in ORGN!")
 
         self.map_info = (x_start, y_start, x_pad, y_pad)
+
+    def _parse_img(self):
+        """Extract the white-light JPEG image
+           The size of while-light image is coded in its EXIF
+           Use PIL to parse the EXIF information
+        """
+        try:
+            uid, pos, size = self.block_info["WHTL"]
+        except KeyError:
+            print("The wdf file does not contain an image",
+                  file=stderr)
+            return
+
+        # Read the bytes. `self.img` is a wrapped IO object mimicking a file
+        self.file_obj.seek(pos + Offsets.jpeg_header)
+        img_bytes = self.file_obj.read(size - Offsets.jpeg_header)
+        self.img = io.BytesIO(img_bytes)
+        # Handle image dimension if PIL is present
+        if PIL is not None:
+            pil_img = PIL.Image.open(self.img)
+            exif_header = dict(pil_img.getexif())
+            try:
+                # Get the width and height of image
+                w_ = exif_header[ExifTags.FocalPlaneXResolution]
+                h_ = exif_header[ExifTags.FocalPlaneYResolution]
+                x_org_, y_org_ = exif_header[ExifTags.FocalPlaneXYOrigins]
+                # The dimensions (width, height)
+                # with unit `img_dimension_unit`
+                self.img_dimensions = numpy.array([w_[0] / w_[1],
+                                                   h_[0] / h_[1]])
+                # Origin of image is at upper right corner
+                self.img_origins = numpy.array([x_org_[0] / x_org_[1],
+                                                y_org_[0] / y_org_[1]])
+                # Default is microns (5)
+                self.img_dimension_unit = UnitType(
+                    exif_header[ExifTags.FocalPlaneResolutionUnit])
+                # Give the box for cropping
+                # Following the PIL manual
+                # (left, upper, right, lower)
+                self.img_cropbox = self._calc_crop_box()
+
+            except KeyError:
+                print("Some keys in white light image header cannot be read!",
+                      file=stderr)
+        return
+
+    def _calc_crop_box(self):
+        """Helper function to calculate crop box
+        """
+        def _proportion(x, minmax, pixels):
+            """Get proportional pixels"""
+            min, max = minmax
+            return int(pixels * (x - min) / (max - min))
+
+        pil_img = PIL.Image.open(self.img)
+        w_, h_ = self.img_dimensions
+        x0_, y0_ = self.img_origins
+        pw = pil_img.width
+        ph = pil_img.height
+        map_xl = self.xpos.min()
+        map_xr = self.xpos.max()
+        map_yt = self.ypos.min()
+        map_yb = self.ypos.max()
+        left = _proportion(map_xl, (x0_, x0_ + w_), pw)
+        right = _proportion(map_xr, (x0_, x0_ + w_), pw)
+        top = _proportion(map_yt, (y0_, y0_ + h_), ph)
+        bottom = _proportion(map_yb, (y0_, y0_ + h_), ph)
+        return (left, top, right, bottom)
 
     def _reshape_spectra(self):
         """Reshape spectra into w * h * self.point_per_spectrum

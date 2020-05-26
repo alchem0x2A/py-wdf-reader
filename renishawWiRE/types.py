@@ -103,3 +103,17 @@ class Offsets(IntEnum):
     # offsets in WMAP block
     wmap_origin = 0x18
     wmap_wh = 0x30
+    # offsets in WHTL block
+    jpeg_header = 0x10
+
+
+class ExifTags(IntEnum):
+    """Customized EXIF TAGS
+    """
+    # Standard EXIF TAGS
+    FocalPlaneXResolution = 0xa20e
+    FocalPlaneYResolution = 0xa20f
+    FocalPlaneResolutionUnit = 0xa210
+    # Customized EXIF TAGS from Renishaw
+    FocalPlaneXYOrigins = 0xfea0
+    FieldOfViewXY = 0xfea1
