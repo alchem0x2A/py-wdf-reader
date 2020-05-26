@@ -106,9 +106,14 @@ A depth series measures contains single point spectra with varied
 Z-depth. For this type `WDFReader.measurement_type == 2`. The code to
 get the spectra are the same as the one in the single point spectra
 measurement, instead that the `WDFReade.spectra` becomes a matrix with
-size of `(count, point_per_spectrum)`:
+size of `(count, point_per_spectrum)`. The `WDFReader.zpos` returns
+the values of z-scan points.
 
-*WIP*
+For details of Z-depth data processing, check this
+[example](examples/ex8_depth.py)
+
+
+
 
 
 

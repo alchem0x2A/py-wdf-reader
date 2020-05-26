@@ -299,8 +299,10 @@ class WDFReader(object):
         uid, pos, size = self.block_info["ORGN"]
         self.origin_list_header = [[None, ] * 5
                                    for i in range(self.data_origin_count)]
+        # All possible to have x y and z positions!
         self.xpos = numpy.zeros(self.count)
         self.ypos = numpy.zeros(self.count)
+        self.zpos = numpy.zeros(self.count)
         list_increment = Offsets.origin_increment + \
             LenType.l_double.value * self.capacity
         curpos = pos + Offsets.origin_info
@@ -330,6 +332,9 @@ class WDFReader(object):
             elif self.origin_list_header[i][1] == DataType.Spatial_Y:
                 self.ypos = array
                 self.ypos_unit = self.origin_list_header[i][2]
+            elif self.origin_list_header[i][1] == DataType.Spatial_Z:
+                self.zpos = array
+                self.zpos_unit = self.origin_list_header[i][2]
             else:
                 pass
             curpos += list_increment
@@ -489,11 +494,17 @@ class WDFReader(object):
                     self.spectra = numpy.reshape(self.spectra,
                                                  (spectra_h, spectra_w,
                                                   self.point_per_spectrum))
-                # otherwise it is a line scan or series
+                # otherwise it is a line scan
                 else:
                     self.spectra = numpy.reshape(self.spectra,
                                                  (self.count,
                                                   self.point_per_spectrum))
+        # For any other type of measurement, reshape into (counts, point_per_spectrum)
+        # example: series scan
+        elif self.count > 1:
+            self.spectra = numpy.reshape(self.spectra,
+                                         (self.count,
+                                          self.point_per_spectrum))
         else:
             return
 
