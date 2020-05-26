@@ -2,26 +2,37 @@ import os
 import sys
 
 from setuptools import find_packages, setup
-from setuptools.command.install import install
+# from setuptools.command.install import install
 
 NAME = "renishawWiRE"
 VERSION = "0.1.5"
 DESCRIPTION = open("README.md", encoding="utf-8").read()
 
 
-class VerifyVersionCommand(install):
-    """Custom command to verify that the git tag matches our version"""
+def verify_version():
+    tag = os.getenv("GIT_TAG")
+    if tag != VERSION:
+        info = "Git tag: {0} does not match the version of this app: {1}".format(
+            tag, VERSION)
+        sys.exit(info)
 
-    description = "verify that the git tag matches our version"
+# class VerifyVersionCommand(install):
+#     """Custom command to verify that the git tag matches our version"""
 
-    def run(self):
-        tag = os.getenv("CIRCLE_TAG")
+#     description = "verify that the git tag matches our version"
 
-        if tag != VERSION:
-            info = "Git tag: {0} does not match the version of this app: {1}".format(
-                tag, VERSION)
-            sys.exit(info)
+#     def run(self):
+#         tag = os.getenv("GIT_TAG")
+#         print("tag is", tag)
 
+#         if tag != VERSION:
+#             info = "Git tag: {0} does not match the version of this app: {1}".format(
+#                 tag, VERSION)
+#             sys.exit(info)
+
+
+if os.getenv("CI_VERIFY") is not None:
+    verify_version()
 
 setup(
     name=NAME,
@@ -50,5 +61,5 @@ setup(
         "Programming Language :: Python :: 3.8",
     ],
     python_requires=">=3.6",
-    cmdclass={"verify": VerifyVersionCommand},
+    # cmdclass={"verify": VerifyVersionCommand},
 )

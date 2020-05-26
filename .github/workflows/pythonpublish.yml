@@ -22,10 +22,17 @@ jobs:
       run: |
         python -m pip install --upgrade pip
         pip install setuptools wheel twine
+    - name: Get Tag
+      uses: olegtarasov/get-tag@v2
+      id: tagName
+    - name: Set Tag
+      run: |
+          echo ::set-env name=GIT_TAG::${{ steps.tagName.outputs.tag }}
     - name: Build and publish
       env:
         TWINE_USERNAME: ${{ secrets.PYPI_USERNAME }}
         TWINE_PASSWORD: ${{ secrets.PYPI_PASSWORD }}
+        CI_VERIFY: True
       run: |
         python setup.py sdist bdist_wheel
         twine upload dist/*
