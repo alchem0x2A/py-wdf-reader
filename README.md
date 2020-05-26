@@ -25,7 +25,15 @@ Requirements:
 
 ```bash
 # Optionally on a virtualenv
-pip install -U renishawWiRE
+# Add --user if you don't want to install as sys admin
+pip install --upgrade renishawWiRE
+```
+
+If you need full plotting / image extraction support, consider
+specifying the extras to `pip`.
+```bash
+# Optionally on a virtualenv
+pip install --upgrade "renishawWiRE[plot]"
 ```
 
 ## `HEAD` version: via `git` + `pip`
