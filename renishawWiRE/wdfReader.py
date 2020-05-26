@@ -204,8 +204,9 @@ class WDFReader(object):
         block_UID = self.__read_type("int32")
         block_len = self.__read_type("int64")
         # First block must be "WDF1"
-        if (block_ID != "WDF1") or (block_UID != 0 and block_UID != 1) \
-           or (block_len != 512):
+        if (block_ID != "WDF1") \
+           or (block_UID != 0 and block_UID != 1) \
+           or (block_len != Offsets.data_block):
             raise ValueError("The wdf file format is incorrect!")
         # TODO what are the digits in between?
 
@@ -223,12 +224,12 @@ class WDFReader(object):
         self.application_name = self.__read_type("utf8", 24)  # Must be "WiRE"
         for i in range(4):
             self.application_version[i] = self.__read_type("int16")
-        self.scan_type = self.__read_type("int32")
-        self.measurement_type = self.__read_type("int32")
+        self.scan_type = ScanType(self.__read_type("int32"))
+        self.measurement_type = MeasurementType(self.__read_type("int32"))
         # For the units
         self.file_obj.seek(Offsets.spectral_info)
-        self.spectral_units = self.__read_type("int32")
-        self.laser_length = convert_wl(self.__read_type("float"))
+        self.spectral_units = UnitType(self.__read_type("int32"))
+        self.laser_length = convert_wl(self.__read_type("float"))  # in nm
         # Username and title
         self.file_obj.seek(Offsets.file_info)
         self.username = self.__read_type("utf8",
@@ -248,9 +249,9 @@ class WDFReader(object):
         offset = Offsets.block_data
         self.file_obj.seek(pos + offset)
         setattr(self, "{0}list_type".format(dir.lower()),
-                self.__read_type("int32"))
+                DataType(self.__read_type("int32")))
         setattr(self, "{0}list_units".format(dir.lower()),
-                self.__read_type("int32"))
+                UnitType(self.__read_type("int32")))
         size = getattr(self, "{0}list_length".format(dir.lower()))
         if size == 0:           # Possibly not started
             raise ValueError("{0}-List possibly not initialized!".
@@ -324,8 +325,10 @@ class WDFReader(object):
             # Set self.xpos or self.ypos
             if self.origin_list_header[i][1] == DataType.Spatial_X:
                 self.xpos = array
+                self.xpos_unit = self.origin_list_header[i][2]
             elif self.origin_list_header[i][1] == DataType.Spatial_Y:
                 self.ypos = array
+                self.ypos_unit = self.origin_list_header[i][2]
             else:
                 pass
             curpos += list_increment
@@ -356,8 +359,8 @@ class WDFReader(object):
         #     self.file_obj.seek(pos + Offsets.wmap_origin + i * 4)
         #     print(i, self._read_type("float"))
         # self.file_obj.seek(pos + Offsets.wmap_wh)
-        self.spectra_w = self.__read_type("int32")
-        self.spectra_h = self.__read_type("int32")
+        spectra_w = self.__read_type("int32")
+        spectra_h = self.__read_type("int32")
         # print(self.spectra_w, self.spectra_h)
         # print(len(self.xpos), len(self.ypos))
         if len(self.xpos) > 1:
@@ -366,16 +369,22 @@ class WDFReader(object):
                 raise ValueError("WMAP Xpad is not same as in ORGN!")
         # If ypos smaller than spectra_w,
         # posssibly not even finished single line scan
-        if len(self.ypos) >= self.spectra_w:
-            if self.spectra_h > 1:
-                loc = self.spectra_w
+        if len(self.ypos) >= spectra_w:
+            if spectra_h > 1:
+                loc = spectra_w
             else:
                 loc = 1
             if not numpy.isclose(y_pad, self.ypos[loc] - self.ypos[0],
                                  rtol=1e-4):
                 raise ValueError("WMAP Ypad is not same as in ORGN!")
-
-        self.map_info = (x_start, y_start, x_pad, y_pad)
+        self.map_shape = (spectra_w, spectra_h)
+        self.map_info = dict(x_start=x_start,
+                             y_start=y_start,
+                             x_pad=x_pad,
+                             y_pad=y_pad,
+                             x_span=spectra_w * x_pad,
+                             y_span=spectra_h * y_pad,
+                             unit=self.xpos_unit)
 
     def _parse_img(self):
         """Extract the white-light JPEG image
@@ -459,13 +468,14 @@ class WDFReader(object):
                 print("Reshaping spectra array failed. Please check.",
                       file=stderr)
             return
-        elif all(hasattr(self, "spectra_" + n) for n in ("w", "h")):
+        elif hasattr(self, "map_shape"):
             # Is a mapping
-            if self.spectra_w * self.spectra_h != self.count:
+            spectra_w, spectra_h = self.map_shape
+            if spectra_w * spectra_h != self.count:
                 print("Mapping information from WMAP not corresponding to ORGN! " +
                       "Will not reshape the spectra", file=stderr)
                 return
-            elif self.spectra_w * self.spectra_h * self.point_per_spectrum \
+            elif spectra_w * spectra_h * self.point_per_spectrum \
                     != len(self.spectra):
                 print("Mapping information from WMAP not corresponding to DATA! " +
                       "Will not reshape the spectra", file=stderr)
@@ -473,9 +483,9 @@ class WDFReader(object):
             else:
                 # Should be h rows * w columns. numpy.ndarray is row first
                 # Reshape to 3D matrix when doing 2D mapping
-                if (self.spectra_h > 1) and (self.spectra_w > 1):
+                if (spectra_h > 1) and (spectra_w > 1):
                     self.spectra = numpy.reshape(self.spectra,
-                                                 (self.spectra_h, self.spectra_w,
+                                                 (spectra_h, spectra_w,
                                                   self.point_per_spectrum))
                 # otherwise it is a line scan or series
                 else:
@@ -509,7 +519,9 @@ class WDFReader(object):
                          UnitType, None,
                          UnitType, None, None, ]):
             sname = convert_attr_name(a)
-            val = self.__get_type_string(a, t)
+            # sname = a
+            # val = self.__get_type_string(a, t)
+            val = getattr(self, a)
             s.append("{0:>24s}:\t{1}".format(sname, val))
         print("\n".join(s))
 
