@@ -56,11 +56,11 @@ class WDFReader(object):
     count (int) : Numbers of experiments (same type), can be smaller than capacity
     spectral_units (int) : Unit of spectra, see unit_types
     xlist_type (int) : See unit_types
-    xlist_units (int) : See unit_types
+    xlist_unit (int) : See unit_types
     xlist_length (int): Size for the xlist
     xdata (numpy.array): x-axis data
     ylist_type (int): Same as xlist_type
-    ylist_units (int): Same as xlist_units
+    ylist_unit (int): Same as xlist_unit
     ylist_length (int): Same as xlist_length
     ydata (numpy.array): y-data, possibly not used
     point_per_spectrum (int): Should be identical to xlist_length
@@ -251,7 +251,7 @@ class WDFReader(object):
         self.file_obj.seek(pos + offset)
         setattr(self, "{0}list_type".format(dir.lower()),
                 DataType(self.__read_type("int32")))
-        setattr(self, "{0}list_units".format(dir.lower()),
+        setattr(self, "{0}list_unit".format(dir.lower()),
                 UnitType(self.__read_type("int32")))
         size = getattr(self, "{0}list_length".format(dir.lower()))
         if size == 0:           # Possibly not started

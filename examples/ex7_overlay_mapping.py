@@ -78,6 +78,7 @@ def main():
         plt.ylabel("Mapping y [μm]")
         cb = plt.colorbar(cm)
         cb.ax.set_title("Ratio")
+        plt.title("50% Optical + 50% Raman")
         plt.tight_layout()
         plt.show(block=False)
         plt.pause(3)
