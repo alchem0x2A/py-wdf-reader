@@ -104,3 +104,4 @@ ENV/
 /.piped
 /.downloaded
 .DS_Store
+/requirements.txt

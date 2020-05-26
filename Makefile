@@ -10,8 +10,7 @@ PIP_DONE=.piped
 pip: $(PIP_DONE)
 
 $(PIP_DONE): setup.py $(PKG_PYS)
-	pip install --upgrade .
-	pip install matplotlib Pillow
+	pip install --upgrade ".[plot]"
 	@touch $@
 
 download: $(DOWN_DONE)

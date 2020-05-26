@@ -5,7 +5,7 @@ from setuptools import find_packages, setup
 from setuptools.command.install import install
 
 NAME = "renishawWiRE"
-VERSION = "0.1.3"
+VERSION = "0.1.4"
 DESCRIPTION = open("README.md", encoding="utf-8").read()
 
 
@@ -18,7 +18,8 @@ class VerifyVersionCommand(install):
         tag = os.getenv("CIRCLE_TAG")
 
         if tag != VERSION:
-            info = "Git tag: {0} does not match the version of this app: {1}".format(tag, VERSION)
+            info = "Git tag: {0} does not match the version of this app: {1}".format(
+                tag, VERSION)
             sys.exit(info)
 
 
@@ -36,7 +37,12 @@ setup(
     description="Reading wdf Raman spectroscopy file from Renishaw WiRE",
     long_description=DESCRIPTION,
     long_description_content_type="text/markdown",
-    install_requires=["numpy"],
+    install_requires=["numpy>=1.12.0"],
+    extras_require={
+        "image": ["Pillow>=3.4.0"],
+        "plot":  ["Pillow>=3.4.0",
+                  "matplotlib>=2.1.0"],
+    },
     classifiers=[
         "Programming Language :: Python",
         "Programming Language :: Python :: 3.6",
