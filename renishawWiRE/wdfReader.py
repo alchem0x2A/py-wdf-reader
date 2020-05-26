@@ -501,7 +501,7 @@ class WDFReader(object):
                                                   self.point_per_spectrum))
         # For any other type of measurement, reshape into (counts, point_per_spectrum)
         # example: series scan
-        elif self.count > 0:
+        elif self.count > 1:
             self.spectra = numpy.reshape(self.spectra,
                                          (self.count,
                                           self.point_per_spectrum))
