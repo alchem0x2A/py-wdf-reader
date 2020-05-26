@@ -6,11 +6,10 @@
 ################################################################
 
 from renishawWiRE import WDFReader
-from pathlib import Path
+from _path import curdir
 
 
 def main():
-    curdir = Path(__file__).parent.resolve()
     filename = curdir / "spectra_files" / "sp.wdf"
     reader = WDFReader(filename)
     reader.print_info()
