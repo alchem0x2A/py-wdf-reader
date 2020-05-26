@@ -13,10 +13,10 @@ Ideas for reverse-engineering the WDF format is inspired by:
 
 Requirements:
 
-- `python` version >= 3.6
-- `Numpy`
-- `Matplotlib` (optional, if you want to plot the spectra in the examples)
-- `Pillow` (optional, if you want to extract the white light image)
+- `python>=3.6`
+- `Numpy>=1.12.0`
+- `Matplotlib>=2.1.0` (optional, if you want to plot the spectra in the examples)
+- `Pillow>=3.4.0` (optional, if you want to extract the white light image)
 
 ## Versions hosted on PyPI: via `pip`
 
@@ -27,12 +27,13 @@ pip install -U renishawWiRE
 
 ## `HEAD` version: via `git` + `pip`
 
-To install the package without examples, run the following commands:
+To install the package without examples, run the following commands
+(installing extra `matplotlib` and `Pillow` if not present):
 
 ```bash
 git clone https://github.com/alchem0x2A/py-wdf-reader.git
 cd py-wdf-reader
-pip install .
+pip install -e ".[plot]"
 ```
 
 Additionally if you want to test the examples, download them from the
