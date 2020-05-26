@@ -1,4 +1,7 @@
+![License: GPL v3](https://img.shields.io/badge/License-GPLv3-blue.svg)
 [![PyPI version](https://badge.fury.io/py/renishawWiRE.svg)](https://badge.fury.io/py/renishawWiRE)
+![actions](https://github.com/alchem0x2A/py-wdf-reader/workflows/Python%20package/badge.svg)
+
 
 A python wrapper for read-only accessing the wdf Raman spectroscopy file format created
 by the WiRE software of Ranishaw Inc.  Renishaw Inc owns copyright of
