@@ -11,7 +11,7 @@ pip: $(PIP_DONE)
 
 $(PIP_DONE): setup.py $(PKG_PYS)
 	pip install --upgrade .
-	pip install matplotlib
+	pip install matplotlib Pillow
 	@touch $@
 
 download: $(DOWN_DONE)
