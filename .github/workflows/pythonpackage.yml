@@ -35,8 +35,14 @@ jobs:
         # exit-zero treats all errors as warnings. The GitHub editor is 127 chars wide
         flake8 . --count --exit-zero --max-complexity=10 --max-line-length=127 --statistics
     - name: Get Tag
+      uses: olegtarasov/get-tag@v2
+      id: tagName
+      with:
+          tagRegex: "foobar-(.*)"  # Optional. Returns specified group text as tag name. Full tag string is returned if regex is not defined.
+          tagRegexGroup: 1 # Optional. Default is 1.
+    - name: Set Tag # Output usage example
       run: |
-          echo ::set-env name=GIT_TAG::${GITHUB_REF#refs/tags/}
+          echo ::set-env name=GIT_TAG::${{ steps.tagName.outputs.tag }}
     - name: Test tag
       run: |
         python -c "import os; print(os.getenv(\"GIT_TAG\"))"
