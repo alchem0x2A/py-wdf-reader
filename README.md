@@ -16,6 +16,7 @@ Requirements:
 - `python` version >= 3.6
 - `Numpy`
 - `Matplotlib` (optional, if you want to plot the spectra in the examples)
+- `Pillow` (optional, if you want to extract the white light image)
 
 ## Versions hosted on PyPI: via `pip`
 
@@ -163,7 +164,8 @@ An [example](examples/ex5_mapping.py) of mapping data is shown below:
 You can also work on the white-light image which automatically saved
 during a mapped scan. The jpeg-form image can be obtained by
 `WDFReader.img` as an io object, and some further informations about
-the dimensions etc.
+the dimensions etc. For this to work you need `Pillow` installed as third-party
+library:
 
 - Get coordinates of white-light image
 
@@ -210,7 +212,7 @@ observed.
 There are still several functionalities not implemented:
 
 - [x] Extract image info
-- [ ] Verify image coordinate superposition
+- [x] Verify image coordinate superposition
 - [ ] Improve series measurement retrieval
 - [ ] Testing on various version of Renishaw instruments
 - [ ] Binary utilities
