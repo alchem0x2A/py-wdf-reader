@@ -160,12 +160,56 @@ An [example](examples/ex5_mapping.py) of mapping data is shown below:
 
 ![mapping](examples/img/mapping.png)
 
+You can also work on the white-light image which automatically saved
+during a mapped scan. The jpeg-form image can be obtained by
+`WDFReader.img` as an io object, and some further informations about
+the dimensions etc.
+
+- Get coordinates of white-light image
+
+```python
+# There are two-sets of coordinates.
+# `xpos` and `ypos` are the Stage XY-coordinate of the mapped area
+# while `img_origins` and `img_dimensions` are size (μm) of white-light image
+# See examples/ex6_mapping_img.py for details
+import matplotlib.image as mpimg
+img_x0, img_y0 = reader.img_origins
+img_w, img_h = reader.img_dimensions
+plt.imshow(reader.img, 
+           extent=(img_x0, img_x0 + img_w,
+                   img_y0 + img_h, img_y0))
+```
+An [example](examples/ex6_mapping_img.py) of mapped area on white light image is shown below:
+
+![mapping](examples/img/map-optical.png)
+
+- Overlaying white-light image with mapped spectra
+
+```python
+# `img_cropbox` is the pixel positions for cropping
+# Requires PIL to operate
+# See examples/ex7_overlay_mapping.py for details
+img = PIL.Image.open(reader.img)
+img1 = img.crop(box=reader.img_cropbox)
+extent = ... # Same extent for both images
+plt.imshow(img1, alpha=0.5, extent=extent) # White light image 
+plt.imshow(spectra, alpha=0.5, extent=extent) # Mapped spectra
+```
+
+The following [example](examples/ex7_overlay_mapping.py) shows the
+overlayed image of both fields. Some degree of misalignment can be
+observed.
+
+![mapping](examples/img/map-overlay.png)
+
+
+
 
 # TODOs
 
 There are still several functionalities not implemented:
 
-- [ ] Extract image info
+- [x] Extract image info
 - [ ] Verify image coordinate superposition
 - [ ] Improve series measurement retrieval
 - [ ] Testing on various version of Renishaw instruments
