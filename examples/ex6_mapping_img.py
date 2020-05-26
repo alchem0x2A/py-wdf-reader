@@ -31,15 +31,13 @@ def main():
     assert reader.measurement_type == 3
     wn = reader.xdata
     spectra = reader.spectra
-    print("The size of mapping is {0:d} * {1:d}".
-          format(reader.spectra_w,
-                 reader.spectra_h))
 
     print(wn.shape, spectra.shape)
+    # Test newer API
     map_x = reader.xpos
     map_y = reader.ypos
-    map_w = map_x.max() - map_x.min()
-    map_h = map_y.max() - map_y.min()
+    map_w = reader.map_info["x_span"]
+    map_h = reader.map_info["y_span"]
 
     # w and h are the measure in xy coordinates
     # Level the spectra

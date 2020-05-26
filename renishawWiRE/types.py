@@ -1,4 +1,10 @@
-# Declaration of DATA types
+################################################################################################
+# Declaration of DATA types            #                                                       #
+# Credits for the Gwyddion project for #                                                       #
+# deciphering the constants            #                                                       #
+# See https://sourceforge.net/p/gwyddion/code/HEAD/tree/trunk/gwyddion/modules/file/renishaw.c #
+################################################################################################
+
 from enum import IntEnum, Enum
 
 
@@ -36,11 +42,11 @@ class ScanType(IntEnum):
 
 class UnitType(IntEnum):
     Arbitrary = 0
-    RamanShift = 1
-    Wavenumber = 2
+    RamanShift = 1              # cm^-1 by default
+    Wavenumber = 2              # nm
     Nanometre = 3
     ElectronVolt = 4
-    Micron = 5
+    Micron = 5                  # same for EXIF units
     Counts = 6
     Electrons = 7
     Millimetres = 8
@@ -66,12 +72,12 @@ class DataType(IntEnum):
     Arbitrary = 0
     Frequency = 1
     Intensity = 2
-    X = 3
-    Y = 4
-    Z = 5
-    R = 6
-    Theta = 7
-    Phi = 8
+    Spatial_X = 3
+    Spatial_Y = 4
+    Spatial_Z = 5
+    Spatial_R = 6
+    Spatial_Theta = 7
+    Spatial_Phi = 8
     Temperature = 9
     Pressure = 10
     Time = 11

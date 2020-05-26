@@ -15,7 +15,7 @@ $(PIP_DONE): setup.py $(PKG_PYS)
 
 download: $(DOWN_DONE)
 
-$(DOWN_DONE): $(EX_DIR)/
+$(DOWN_DONE): $(EX_DIR)/spectra_files/
 	wget -nv https://github.com/alchem0x2A/py-wdf-reader/releases/download/binary/spectra_files.zip
 	unzip -o spectra_files.zip -d examples/
 	rm spectra_files.zip
