@@ -27,6 +27,9 @@ class MeasurementType(IntEnum):
     Series = 2
     Mapping = 3
 
+    def __str__(self):
+        return self._name_
+
 
 class ScanType(IntEnum):
     Unspecified = 0
@@ -38,6 +41,9 @@ class ScanType(IntEnum):
     StreamLine = 6
     StreamLineHR = 7
     PointDetector = 8
+
+    def __str__(self):
+        return self._name_
 
 
 class UnitType(IntEnum):
@@ -67,6 +73,35 @@ class UnitType(IntEnum):
     KelvinPerMinute = 23
     FileTime = 24
 
+    def __str__(self):
+        """Rewrite the unit name output"""
+        unit_str = dict(Arbitrary="",
+                        RamanShift="1/cm",              # cm^-1 by default
+                        Wavenumber="nm",            # nm
+                        Nanometre="nm",
+                        ElectronVolt="eV",
+                        Micron="μm",  # same for EXIF units
+                        Counts="counts",
+                        Electrons="electrons",
+                        Millimetres="mm",
+                        Metres="m",
+                        Kelvin="K",
+                        Pascal="Pa",
+                        Seconds="s",
+                        Milliseconds="ms",
+                        Hours="h",
+                        Days="d",
+                        Pixels="px",
+                        Intensity="",
+                        RelativeIntensity="",
+                        Degrees="°",
+                        Radians="rad",
+                        Celsius="°C",
+                        Fahrenheit="°F",
+                        KelvinPerMinute="K/min",
+                        FileTime="",)
+        return unit_str[self._name_]
+
 
 class DataType(IntEnum):
     Arbitrary = 0
@@ -88,6 +123,9 @@ class DataType(IntEnum):
     Checksum = 16
     Flags = 17
     ElapsedTime = 18
+
+    def __str__(self):
+        return self._name_
 
 
 class Offsets(IntEnum):

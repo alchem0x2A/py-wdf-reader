@@ -11,6 +11,7 @@ from .utils import convert_wl, convert_attr_name
 from sys import stderr
 try:
     import PIL
+    from PIL import Image
 except ImportError:
     PIL = None
 
@@ -55,11 +56,11 @@ class WDFReader(object):
     count (int) : Numbers of experiments (same type), can be smaller than capacity
     spectral_units (int) : Unit of spectra, see unit_types
     xlist_type (int) : See unit_types
-    xlist_units (int) : See unit_types
+    xlist_unit (int) : See unit_types
     xlist_length (int): Size for the xlist
     xdata (numpy.array): x-axis data
     ylist_type (int): Same as xlist_type
-    ylist_units (int): Same as xlist_units
+    ylist_unit (int): Same as xlist_unit
     ylist_length (int): Same as xlist_length
     ydata (numpy.array): y-data, possibly not used
     point_per_spectrum (int): Should be identical to xlist_length
@@ -79,15 +80,15 @@ class WDFReader(object):
         # Initialize the properties for the wdfReader class
         self.title = ""
         self.username = ""
-        self.measurement_type = ""
-        self.scan_type = ""
+        self.measurement_type = None
+        self.scan_type = None
         self.laser_length = None
         self.count = None
-        self.spectral_units = ""
+        self.spectral_unit = None
         self.xlist_type = None
-        self.xlist_units = ""
+        self.xlist_unit = None
         self.ylist_type = None
-        self.ylist_units = ""
+        self.ylist_unit = None
         self.point_per_spectrum = None
         self.data_origin_count = None
         self.capacity = None
@@ -228,7 +229,7 @@ class WDFReader(object):
         self.measurement_type = MeasurementType(self.__read_type("int32"))
         # For the units
         self.file_obj.seek(Offsets.spectral_info)
-        self.spectral_units = UnitType(self.__read_type("int32"))
+        self.spectral_unit = UnitType(self.__read_type("int32"))
         self.laser_length = convert_wl(self.__read_type("float"))  # in nm
         # Username and title
         self.file_obj.seek(Offsets.file_info)
@@ -250,7 +251,7 @@ class WDFReader(object):
         self.file_obj.seek(pos + offset)
         setattr(self, "{0}list_type".format(dir.lower()),
                 DataType(self.__read_type("int32")))
-        setattr(self, "{0}list_units".format(dir.lower()),
+        setattr(self, "{0}list_unit".format(dir.lower()),
                 UnitType(self.__read_type("int32")))
         size = getattr(self, "{0}list_length".format(dir.lower()))
         if size == 0:           # Possibly not started
@@ -266,7 +267,7 @@ class WDFReader(object):
         """Get information from DATA block
         """
         if end == -1:           # take all spectra
-            end = self.count-1
+            end = self.count - 1
         if (start not in range(self.count)) or (end not in range(self.count)):
             raise ValueError("Wrong start and end indices of spectra!")
         if start > end:
@@ -384,7 +385,8 @@ class WDFReader(object):
                              y_pad=y_pad,
                              x_span=spectra_w * x_pad,
                              y_span=spectra_h * y_pad,
-                             unit=self.xpos_unit)
+                             x_unit=self.xpos_unit,
+                             y_unit=self.ypos_unit)
 
     def _parse_img(self):
         """Extract the white-light JPEG image
@@ -404,7 +406,7 @@ class WDFReader(object):
         self.img = io.BytesIO(img_bytes)
         # Handle image dimension if PIL is present
         if PIL is not None:
-            pil_img = PIL.Image.open(self.img)
+            pil_img = Image.open(self.img)
             exif_header = dict(pil_img.getexif())
             try:
                 # Get the width and height of image
@@ -506,22 +508,18 @@ class WDFReader(object):
 
         s.append("{0:>24s}:\t{1} nm".format("Laser Wavelength",
                                             self.laser_length))
-        for a, t in zip(["count", "capacity", "point_per_spectrum",
-                         "scan_type", "measurement_type",
-                         "spectral_units",
-                         "xlist_units", "xlist_length",
-                         "ylist_units", "ylist_length",
-                         "data_origin_count"],
-
-                        [None, None, None,
-                         ScanType, MeasurementType,
-                         UnitType,
-                         UnitType, None,
-                         UnitType, None, None, ]):
+        for a in ("count", "capacity", "point_per_spectrum",
+                  "scan_type", "measurement_type",
+                  "spectral_unit",
+                  "xlist_unit", "xlist_length",
+                  "ylist_unit", "ylist_length",
+                  "xpos_unit", "ypos_unit"):
             sname = convert_attr_name(a)
-            # sname = a
-            # val = self.__get_type_string(a, t)
-            val = getattr(self, a)
+            # Use explicit string conversion to replace
+            try:
+                val = str(getattr(self, a))
+            except AttributeError:
+                continue
             s.append("{0:>24s}:\t{1}".format(sname, val))
         print("\n".join(s))
 
