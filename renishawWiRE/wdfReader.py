@@ -72,7 +72,7 @@ class WDFReader(object):
                         # TODO types?
     """
 
-    def __init__(self, file_name, quiet=True):
+    def __init__(self, file_name, debug=False):
         try:
             self.file_obj = open(str(file_name), "rb")
         except IOError:
@@ -99,6 +99,7 @@ class WDFReader(object):
         self.accumulation_count = None
         self.block_info = {}    # each key has value (uid, offset, size)
         self.is_completed = False
+        self.debug = debug
         # Parse the header section in the wdf file
         self.__locate_all_blocks()
         # Parse individual blocks
@@ -115,17 +116,20 @@ class WDFReader(object):
         # self._parse_wmap()
 
         # Finally print the information
-        if not quiet:
-            self.print_info()
+        if self.debug:
+            print(("File Metadata").center(80, "="),
+                  file=stderr)
+            self.print_info(file=stderr)
+            print("=" * 80, file=stderr)
 
     def close(self):
         self.file_obj.close()
+        self.img.close()
 
     def __get_type_string(self, attr, data_type):
         """Get the enumerated-data_type as string
         """
         val = getattr(self, attr)  # No error checking
-        # print(attr, data_type, val)
         if data_type is None:
             return val
         else:
@@ -168,7 +172,6 @@ class WDFReader(object):
             try:
                 block_name, block_uid, block_size = self.__locate_single_block(
                     curpos)
-                # print(block_name, block_uid, block_size)
                 self.block_info[block_name] = (block_uid, curpos, block_size)
                 curpos += block_size
             except (EOFError, UnicodeDecodeError):
@@ -178,8 +181,9 @@ class WDFReader(object):
         """Get data according to specific block name
         """
         if block_name not in self.block_info.keys():
-            print("Block name {0} not present in current measurement".
-                  format(block_name), file=stderr)
+            if self.debug:
+                print("Block name {0} not present in current measurement".
+                      format(block_name), file=stderr)
             return
         # parse individual blocks with names
         actions = {
@@ -345,8 +349,10 @@ class WDFReader(object):
         try:
             uid, pos, size = self.block_info["WMAP"]
         except KeyError:
-            print("Current measurement does not contain mapping information!",
-                  file=stderr)
+            if self.debug:
+                print(("Current measurement does not"
+                       " contain mapping information!"),
+                      file=stderr)
             return
 
         self.file_obj.seek(pos + Offsets.wmap_origin)
@@ -360,15 +366,9 @@ class WDFReader(object):
         x_pad = self.__read_type("float")
         y_pad = self.__read_type("float")
         unknown2 = self.__read_type("float")
-        # for i in range(9):
-        #     print(i, self._read_type("int32"))
-        #     self.file_obj.seek(pos + Offsets.wmap_origin + i * 4)
-        #     print(i, self._read_type("float"))
-        # self.file_obj.seek(pos + Offsets.wmap_wh)
         spectra_w = self.__read_type("int32")
         spectra_h = self.__read_type("int32")
-        # print(self.spectra_w, self.spectra_h)
-        # print(len(self.xpos), len(self.ypos))
+
         if len(self.xpos) > 1:
             if not numpy.isclose(x_pad, self.xpos[1] - self.xpos[0],
                                  rtol=1e-4):
@@ -401,8 +401,9 @@ class WDFReader(object):
         try:
             uid, pos, size = self.block_info["WHTL"]
         except KeyError:
-            print("The wdf file does not contain an image",
-                  file=stderr)
+            if self.debug:
+                print("The wdf file does not contain an image",
+                      file=stderr)
             return
 
         # Read the bytes. `self.img` is a wrapped IO object mimicking a file
@@ -434,8 +435,10 @@ class WDFReader(object):
                 self.img_cropbox = self.__calc_crop_box()
 
             except KeyError:
-                print("Some keys in white light image header cannot be read!",
-                      file=stderr)
+                if self.debug:
+                    print(("Some keys in white light image header"
+                           " cannot be read!"),
+                          file=stderr)
         return
 
     def __calc_crop_box(self):
@@ -465,27 +468,36 @@ class WDFReader(object):
         """Reshape spectra into w * h * self.point_per_spectrum
         """
         if not self.is_completed:
-            print("The measurement is not completed, " +
-                  "will try to reshape spectra into count * pps.", file=stderr)
+            if self.debug:
+                print(("The measurement is not completed, "
+                       "will try to reshape spectra into count * pps."),
+                      file=stderr)
             try:
                 self.spectra = numpy.reshape(self.spectra,
                                              (self.count,
                                               self.point_per_spectrum))
             except ValueError:
-                print("Reshaping spectra array failed. Please check.",
-                      file=stderr)
+                if self.debug:
+                    print("Reshaping spectra array failed. Please check.",
+                          file=stderr)
             return
         elif hasattr(self, "map_shape"):
             # Is a mapping
             spectra_w, spectra_h = self.map_shape
             if spectra_w * spectra_h != self.count:
-                print("Mapping information from WMAP not corresponding to ORGN! " +
-                      "Will not reshape the spectra", file=stderr)
+                if self.debug:
+                    print(("Mapping information from WMAP not"
+                           " corresponding to ORGN! "
+                           "Will not reshape the spectra"),
+                          file=stderr)
                 return
             elif spectra_w * spectra_h * self.point_per_spectrum \
                     != len(self.spectra):
-                print("Mapping information from WMAP not corresponding to DATA! " +
-                      "Will not reshape the spectra", file=stderr)
+                if self.debug:
+                    print(("Mapping information from WMAP"
+                           " not corresponding to DATA! "
+                           "Will not reshape the spectra"),
+                          file=stderr)
                 return
             else:
                 # Should be h rows * w columns. numpy.ndarray is row first
@@ -508,7 +520,7 @@ class WDFReader(object):
         else:
             return
 
-    def print_info(self):
+    def print_info(self, **params):
         """Print information of the wdf file
         """
         s = []
@@ -532,28 +544,8 @@ class WDFReader(object):
             except AttributeError:
                 continue
             s.append("{0:>24s}:\t{1}".format(sname, val))
-        print("\n".join(s))
+        print("\n".join(s), **params)
 
 
 if __name__ == '__main__':
-    import sys
-    try:
-        fn = sys.argv[1]
-        # print(fn)
-        wdf = WDFReader(fn)
-        # for s in dir(wdf):
-        # if "__" not in s:
-        # print(s, getattr(wdf, s))
-        wdf.print_info()
-        print(wdf.spectra.shape)
-        # print(wdf.spectra_w, wdf.spectra_h)
-        # xdata = wdf.get_xdata()
-        # ydata = wdf.get_ydata()
-        # spectra = wdf.get_spectra()
-        # print(wdf.xdata)
-        # print(wdf.ydata)
-        # print(wdf.spectra)
-    except IndexError:
-        raise
-    # plt.plot(xdata, spectra)
-    # plt.show()
+    raise NotImplementedError("Please dont run this module as a script!")

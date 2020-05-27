@@ -13,7 +13,9 @@ def main():
     for name in ("sp", "line", "depth", "mapping"):
         filename = curdir / "spectra_files" / "{0}.wdf".format(name)
         print("Testing: ", filename.as_posix())
-        reader = WDFReader(filename)
+        # if debug=True, debug information will show in stderr
+        reader = WDFReader(filename, debug=True)
+        # Explicitly print into stdout
         reader.print_info()
     return
 
