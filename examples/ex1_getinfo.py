@@ -17,6 +17,7 @@ def main():
         reader = WDFReader(filename, debug=True)
         # Explicitly print into stdout
         reader.print_info()
+        reader.close()
     return
 
 
