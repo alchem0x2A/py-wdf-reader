@@ -125,7 +125,8 @@ class WDFReader(object):
 
     def close(self):
         self.file_obj.close()
-        self.img.close()
+        if hasattr(self, "img"):
+            self.img.close()
 
     def __get_type_string(self, attr, data_type):
         """Get the enumerated-data_type as string
