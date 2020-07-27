@@ -20,7 +20,12 @@ Requirements:
 - `python>=3.6`
 - `Numpy>=1.12.0`
 - `Matplotlib>=2.1.0` (optional, if you want to plot the spectra in the examples)
-- `Pillow>=3.4.0` (optional, if you want to extract the white light image)
+- `Pillow>=3.4.0` (optional, if you want to extract the white light
+   image) **Warning** there are some API changes to `Pillow` after
+   version 7.2.0 (thanks @markotoplak). Please update `renishawWiRE`
+   to version >0.1.8 if you are experiencing problems with Tiff image
+   extraction.
+
 
 ## Versions hosted on PyPI: via `pip`
 
