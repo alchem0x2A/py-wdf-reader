@@ -12,6 +12,7 @@ from sys import stderr
 try:
     import PIL
     from PIL import Image
+    from PIL.TiffImagePlugin import IFDRational
 except ImportError:
     PIL = None
 
@@ -419,13 +420,23 @@ class WDFReader(object):
                 w_ = exif_header[ExifTags.FocalPlaneXResolution]
                 h_ = exif_header[ExifTags.FocalPlaneYResolution]
                 x_org_, y_org_ = exif_header[ExifTags.FocalPlaneXYOrigins]
+
+                def rational2float(v):
+                    """ Pillow<7.2.0 returns tuple, Pillow>=7.2.0 returns IFDRational """
+                    if not isinstance(v, IFDRational):
+                        return v[0] / v[1]
+                    return float(v)
+
+                w_, h_ = rational2float(w_), rational2float(h_)
+                x_org_, y_org_ = rational2float(x_org_), rational2float(y_org_)
+
                 # The dimensions (width, height)
                 # with unit `img_dimension_unit`
-                self.img_dimensions = numpy.array([w_[0] / w_[1],
-                                                   h_[0] / h_[1]])
+                self.img_dimensions = numpy.array([w_,
+                                                   h_])
                 # Origin of image is at upper right corner
-                self.img_origins = numpy.array([x_org_[0] / x_org_[1],
-                                                y_org_[0] / y_org_[1]])
+                self.img_origins = numpy.array([x_org_,
+                                                y_org_])
                 # Default is microns (5)
                 self.img_dimension_unit = UnitType(
                     exif_header[ExifTags.FocalPlaneResolutionUnit])
