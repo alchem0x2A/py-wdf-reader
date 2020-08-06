@@ -1,0 +1,34 @@
+{% set data = load_setup_py_data() %}
+{% set version = data['version'] %}
+
+package:
+  name: renishawwire
+  version: {{ data['version'] }}
+
+source:
+  git_url: ../
+
+build:
+  number: 0
+  noarch: python
+  script:
+    - python setup.py install --single-version-externally-managed --record record.txt
+
+requirements:
+  build:
+    - python
+    - setuptools
+  run:
+    - python
+    - numpy >=1.12.0
+
+test:
+  imports:
+    - renishawWiRE
+
+about:
+  home: https://github.com/alchem0x2A/py-wdf-reader
+  license: GPL-3
+  license_family: GPL
+  summary: 'Reading wdf Raman spectroscopy file from Renishaw WiRE'
+
