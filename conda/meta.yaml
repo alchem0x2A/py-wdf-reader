@@ -2,7 +2,7 @@
 {% set version = data['version'] %}
 
 package:
-  name: renishaw_wire
+  name: renishawwire
   version: {{ data['version'] }}
 
 source:
@@ -21,8 +21,6 @@ requirements:
   run:
     - python
     - numpy >=1.12.0
-    - Pillow >=3.4.0
-    - matplotlib >=2.1.0
 
 test:
   imports:
