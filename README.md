@@ -28,9 +28,10 @@ Requirements:
    version 7.2.0 (thanks @markotoplak). Please update `renishawWiRE`
    to version >= 0.1.8 if you are experiencing problems with Tiff image
    extraction.
+   
+You can choose any of the following installation methods:
 
-
-## Versions hosted on PyPI: via `pip`
+### 1. Versions hosted on PyPI: via `pip`
 
 ```bash
 # Optionally on a virtualenv
@@ -45,7 +46,7 @@ specifying the extras to `pip`.
 pip install --upgrade "renishawWiRE[plot]"
 ```
 
-## `HEAD` version: via `git` + `pip`
+### 2. `HEAD` version: via `git` + `pip`
 
 To install the package without examples, run the following commands
 (installing extra `matplotlib` and `Pillow` if not present):
@@ -56,14 +57,21 @@ cd py-wdf-reader
 pip install -e ".[plot]"
 ```
 
-## Via `anaconda`
+### 3. Via `anaconda`
 The version hosted by `anaconda` will install all dependent packages including `numpy` `matplotlib` and `Pillow`
 
 ```bash
 conda install -c alchem0x2a renishaw_wire
 ```
 
-Additionally if you want to test the examples, download them from the
+## Test installation
+
+Simply try if importing works:
+```bash
+python -c "import renishawWiRE"
+```
+
+Additionally, if you want to test the examples, download them from the
 [binary
 release](https://github.com/alchem0x2A/py-wdf-reader/releases/download/binary/spectra_files.zip)
 and overwrite the dummy files within `examples/spectra_files/`:
