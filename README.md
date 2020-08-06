@@ -1,6 +1,7 @@
 # `renishawWiRE` Renishaw Raman spectroscopy parser in python
 ![License: GPL v3](https://img.shields.io/badge/License-GPLv3-blue.svg)
 [![PyPI version](https://badge.fury.io/py/renishawWiRE.svg)](https://badge.fury.io/py/renishawWiRE)
+[![Anaconda-Server Badge](https://anaconda.org/alchem0x2a/renishaw_wire/badges/installer/conda.svg)](https://conda.anaconda.org/alchem0x2a)
 ![actions](https://github.com/alchem0x2A/py-wdf-reader/workflows/Python%20package/badge.svg)
 
 
@@ -53,6 +54,13 @@ To install the package without examples, run the following commands
 git clone https://github.com/alchem0x2A/py-wdf-reader.git
 cd py-wdf-reader
 pip install -e ".[plot]"
+```
+
+## Via `anaconda`
+The version hosted by `anaconda` will install all dependent packages including `numpy` `matplotlib` and `Pillow`
+
+```bash
+conda install -c alchem0x2a renishaw_wire
 ```
 
 Additionally if you want to test the examples, download them from the
