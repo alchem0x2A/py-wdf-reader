@@ -371,20 +371,23 @@ class WDFReader(object):
         spectra_w = self.__read_type("int32")
         spectra_h = self.__read_type("int32")
 
-        if len(self.xpos) > 1:
-            if not numpy.isclose(x_pad, self.xpos[1] - self.xpos[0],
-                                 rtol=1e-4):
-                raise ValueError("WMAP Xpad is not same as in ORGN!")
-        # If ypos smaller than spectra_w,
-        # posssibly not even finished single line scan
-        if len(self.ypos) >= spectra_w:
-            if spectra_h > 1:
-                loc = spectra_w
-            else:
-                loc = 1
-            if not numpy.isclose(y_pad, self.ypos[loc] - self.ypos[0],
-                                 rtol=1e-4):
-                raise ValueError("WMAP Ypad is not same as in ORGN!")
+        # Determine if the xy-grid spacing is same as in x_pad and y_pad
+        if (len(self.xpos) > 1) and (len(self.ypos) > 1):
+            xdist = numpy.abs(self.xpos - self.xpos[0])
+            ydist = numpy.abs(self.ypos - self.ypos[0])
+            xdist = xdist[numpy.nonzero(xdist)]
+            ydist = ydist[numpy.nonzero(ydist)]
+            # Get minimal non-zero padding in the grid
+            try:
+                x_pad_grid = numpy.min(xdist)
+            except ValueError:
+                x_pad_grid = 0
+
+            try:
+                y_pad_grid = numpy.min(ydist)
+            except ValueError:
+                y_pad_grid = 0
+
         self.map_shape = (spectra_w, spectra_h)
         self.map_info = dict(x_start=x_start,
                              y_start=y_start,
