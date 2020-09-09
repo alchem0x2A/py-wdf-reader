@@ -3,8 +3,10 @@
 name: publish_conda
 
 on:
-  release:
-    types: [published]
+  workflow_dispatch:
+    inputs:
+      tags:
+        description: 'Manual input tags' 
     
 jobs:
   publish:
@@ -12,7 +14,7 @@ jobs:
     steps:
     - uses: actions/checkout@v2
     - name: publish-to-conda
-      uses: fcakyon/conda-publish-action@v1.3
+      uses: alchem0x2A/conda-publish-action
       with:
         subdir: 'conda'
         anacondatoken: ${{ secrets.ANACONDA_TOKEN }}
