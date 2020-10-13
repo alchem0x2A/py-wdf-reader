@@ -1,7 +1,7 @@
-#!/usr/bin/env python3
+#!/usr/bin/env python
 """Export the renishaw file as plain text files
    usage:
-   renishaw-export  
+   renishaw-export
 """
 
 from renishawWiRE.wdfReader import WDFReader
@@ -10,11 +10,24 @@ from pathlib import Path
 import os
 import sys
 import numpy as np
-import matplotlib.pyplot as plt
-import matplotlib.image as mpimg
+
+def test_version():
+    ver = sys.version_info
+    if (ver.major >= 2) and (ver.minor >= 6):
+        return True
+    else:
+        return False
 
 
 def main():
+    """Main program
+    """
+
+    if test_version() is False:
+        print("Need at least python>=3.6. Abort!",
+              file=sys.stderr)
+        return 1
+
     parser = ArgumentParser(description=("Simple script to convert Renishaw wdf spectroscopy"
                                          " files into plain text files"))
     parser.add_argument("wdf_file",
@@ -158,6 +171,16 @@ def handle_spectra(reader, delimiter=","):
 
 
 def extract_img(reader, output_filename):
+    """Handle image file
+    """
+    try:
+        import matplotlib.pyplot as plt
+        import matplotlib.image as mpimg
+    except ImportError as e:
+        print("Error when importing matplotlib.\n{0}"
+              .format(e),
+              file=sys.stderr)
+        return 1
     img = mpimg.imread(reader.img, format="jpg")
     img_x0, img_y0 = reader.img_origins
     img_w, img_h = reader.img_dimensions
