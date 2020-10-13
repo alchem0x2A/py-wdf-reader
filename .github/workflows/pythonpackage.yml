@@ -46,6 +46,9 @@ jobs:
     - name: Test tag
       run: |
         python -c "import os; print(os.getenv(\"GIT_TAG\"))"
+    - name: Test python encoding
+      run: |
+        python -c "import sys; print(\"Encoding\", sys.getdefaultencoding())"
     - name: Testing examples
       run: |
         make examples
