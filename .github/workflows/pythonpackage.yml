@@ -51,6 +51,9 @@ jobs:
       run: |
         python -c "import os; print(os.getenv(\"GIT_TAG\"))"
       shell: bash
+    - name: Test encoding
+      run: |
+        python -c "import sys; print(\"Encoding\", sys.getdefaultencoding())"
     - name: Testing examples
       run: |
         make examples
