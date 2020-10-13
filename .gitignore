@@ -107,3 +107,5 @@ ENV/
 /requirements.txt
 /examples/spectra_files/*.csv
 /examples/spectra_files/*.svg
+/*.csv
+/*.svg

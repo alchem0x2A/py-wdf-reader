@@ -89,6 +89,26 @@ git update-index --skip-worktree examples/spectra_files.wdf
 Check the sample codes in `examples/` folder for more details about
 what the package can do.
 
+## Simple script for exporting wdf spectra (version > 0.1.11)
+
+The package also installs a simple wrapper script `wdf-export` for
+exporting spectra in the wdf file to plain-text formats. If the
+measurement contains mapping information, the optical image is also
+exported (as `.svg` file)
+
+### Usage
+Simply use the base name of input file for the exported text file:
+```bash
+wdf-export path/to/wdf_file
+```
+or specifying the input and output files
+```bash
+wdf-export path/to/wdf_file -o path/to/output.csv
+```
+
+
+
+
 ## Get file information
 
 `renishawWiRE.WDFReader` is the main entry point to get information of a WDF file.
