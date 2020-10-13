@@ -560,7 +560,7 @@ class WDFReader(object):
                 continue
             s.append("{0:>24s}:\t{1}".format(sname, val))
         text = u"\n".join(s)
-        print(text.encode("utf8"), **params)
+        print(text, **params)
 
 
 if __name__ == '__main__':

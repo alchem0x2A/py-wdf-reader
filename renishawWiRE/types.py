@@ -80,7 +80,7 @@ class UnitType(IntEnum):
                         Wavenumber="nm",            # nm
                         Nanometre="nm",
                         ElectronVolt="eV",
-                        Micron=u"μm",  # same for EXIF units
+                        Micron="um",  # same for EXIF units
                         Counts="counts",
                         Electrons="electrons",
                         Millimetres="mm",
