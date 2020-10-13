@@ -25,4 +25,4 @@ examples: download pip $(EX_PYS)
 
 $(EX_PYS):
 	cd $(EX_DIR) &&\
-	python3 $(shell basename $@)
+	python $(shell basename $@)
