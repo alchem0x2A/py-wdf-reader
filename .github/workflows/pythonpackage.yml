@@ -53,7 +53,7 @@ jobs:
       shell: bash
     - name: Test encoding
       run: |
-        python -c "import sys; print(\"Encoding\", sys.getdefaultencoding())"
+        python -c "import sys; print(sys.getdefaultencoding())"
     - name: Testing examples
       run: |
         make examples
