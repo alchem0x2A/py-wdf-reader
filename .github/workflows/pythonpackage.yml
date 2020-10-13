@@ -57,4 +57,5 @@ jobs:
     - name: Testing examples
       run: |
         make examples
+        pytest examples
       shell: bash

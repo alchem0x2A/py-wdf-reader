@@ -23,6 +23,7 @@ def main():
     # For mapping, xdata is still wavenumber
     wn = reader.xdata
     spectra = reader.spectra
+    assert wn.shape[0] == spectra.shape[1]
     # Now spectra.shape becomes (i, j, spectrum)
     print(wn.shape, spectra.shape)
     if plot is True:
