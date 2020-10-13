@@ -559,7 +559,8 @@ class WDFReader(object):
             except AttributeError:
                 continue
             s.append("{0:>24s}:\t{1}".format(sname, val))
-        print(u"\n".join(s), **params)
+        text = u"\n".join(s)
+        print(text.encode("utf8"), **params)
 
 
 if __name__ == '__main__':
