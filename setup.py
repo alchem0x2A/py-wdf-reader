@@ -5,7 +5,7 @@ from setuptools import find_packages, setup
 # from setuptools.command.install import install
 
 NAME = "renishawWiRE"
-VERSION = "0.1.10"
+VERSION = "0.1.11"
 DESCRIPTION = open("README.md", encoding="utf-8").read()
 
 
@@ -59,6 +59,9 @@ setup(
         "Programming Language :: Python :: 3.6",
         "Programming Language :: Python :: 3.7",
         "Programming Language :: Python :: 3.8",
+    ],
+    scripts=[
+        "bin/wdf-export",
     ],
     python_requires=">=3.6",
     # cmdclass={"verify": VerifyVersionCommand},

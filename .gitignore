@@ -105,3 +105,5 @@ ENV/
 /.downloaded
 .DS_Store
 /requirements.txt
+/examples/spectra_files/*.csv
+/examples/spectra_files/*.svg
