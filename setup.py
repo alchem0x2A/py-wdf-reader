@@ -60,9 +60,12 @@ setup(
         "Programming Language :: Python :: 3.7",
         "Programming Language :: Python :: 3.8",
     ],
-    scripts=[
-        "bin/wdf-export",
-    ],
+    #scripts=[
+     #   "bin/wdf-export",
+    #],
+    entry_points = {
+        "console_scripts": ["wdf_export=renishawWiRE.export:main"],
+    },
     python_requires=">=3.6",
     # cmdclass={"verify": VerifyVersionCommand},
 )

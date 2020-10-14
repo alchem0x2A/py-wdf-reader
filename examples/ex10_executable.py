@@ -31,7 +31,7 @@ def call_exe(name, extras="", output=None):
             print(f)
             os.remove(f)
     # Initial name
-    cmd = "wdf-export {0} {1}".format(filename.as_posix(),
+    cmd = "wdf_export {0} {1}".format(filename.as_posix(),
                                       extras)
     if output is not None:
         cmd += "-o {0}".format(output)
