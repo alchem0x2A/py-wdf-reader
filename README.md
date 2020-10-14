@@ -71,6 +71,10 @@ Simply try if importing works:
 ```bash
 python -c "import renishawWiRE"
 ```
+and test the executable binary:
+```bash
+wdf-export -h
+```
 
 Additionally, if you want to test the examples, download them from the
 [binary
@@ -89,7 +93,7 @@ git update-index --skip-worktree examples/spectra_files.wdf
 Check the sample codes in `examples/` folder for more details about
 what the package can do.
 
-## Simple script for exporting wdf spectra (version > 0.1.11)
+## 1. Simple script for exporting wdf spectra (version > 0.1.11)
 
 The package also installs a simple wrapper script `wdf-export` for
 exporting spectra in the wdf file to plain-text formats. If the
@@ -109,7 +113,8 @@ wdf-export path/to/wdf_file -o path/to/output.csv
 
 
 
-## Get file information
+## 2. Python API
+### Get file information
 
 `renishawWiRE.WDFReader` is the main entry point to get information of a WDF file.
 
@@ -124,7 +129,7 @@ reader = WDFReader(filename)
 reader.print_info()
 ```
 
-## Get single point spectrum / spectra
+### Get single point spectrum / spectra
 
 When the spectrum is single-point (`WDFReader.measurement_type == 1`),
 `WDFReader.xdata` is the spectral points, and `WDFReader.spectra` is
@@ -144,7 +149,7 @@ An [example](examples/ex2_sp_spectra.py) is shown below:
 
 ![sp spectrum](examples/img/sp_spectra.png)
 
-## Get depth series spectra
+### Get depth series spectra
 
 A depth series measures contains single point spectra with varied
 Z-depth. For this type `WDFReader.measurement_type == 2`. The code to
@@ -163,7 +168,7 @@ For details of Z-depth data processing, check this
 
 
 
-## Get line scan from StreamLine™ / StreamHR Line™ measurements
+### Get line scan from StreamLine™ / StreamHR Line™ measurements
 
 For mapped measurements (line or grid scan),
 `WDFReader.measurement_type == 3`.  The code to get the spectra are
@@ -197,7 +202,7 @@ d = (x ** 2 + y ** 2) ** (1 / 2)
 ```
 
 
-## Get grid mapping from StreamLine™ / StreamHR Line™ measurements
+### Get grid mapping from StreamLine™ / StreamHR Line™ measurements
 
 Finally let's extract the grid-spaced Raman data. For mapping data
 with `spectra_w` pixels in the x-direction and `spectra_h` in the
@@ -275,9 +280,9 @@ There are still several functionalities not implemented:
 
 - [x] Extract image info
 - [x] Verify image coordinate superposition
-- [ ] Improve series measurement retrieval
+- [x] Improve series measurement retrieval
 - [ ] Testing on various version of Renishaw instruments
-- [ ] Binary utilities
+- [x] Binary utilities
 
 # Bug reports
 
