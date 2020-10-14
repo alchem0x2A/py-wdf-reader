@@ -5,6 +5,9 @@
 # The peak ratio at 1315 cm^-1 and 1380 cm^-1 are plotted #
 # Details see Small 14, 1804006 (2018).                   #
 ###########################################################
+import subprocess
+import os
+from pathlib import Path
 
 import numpy as np
 from renishawWiRE import WDFReader
@@ -16,9 +19,6 @@ try:
 except ImportError:
     plot = False
 
-import os
-
-import subprocess
 
 def call_exe(name, extras="", output=None):
     filename = curdir / "spectra_files" / "{0}.wdf".format(name)
@@ -33,6 +33,9 @@ def call_exe(name, extras="", output=None):
     # Initial name
     cmd = "wdf-export {0} {1}".format(filename.as_posix(),
                                       extras)
+    if output is not None:
+        cmd += "-o {0}".format(output)
+
     run = subprocess.run(cmd, shell=True)
     assert run.returncode == 0
 
@@ -40,7 +43,10 @@ def call_exe(name, extras="", output=None):
     if output is not None:
         output = Path(output)
     else:
-        output = filename.with_suffix(".csv")
+        if ".txt" not in extras:
+            output = filename.with_suffix(".csv")
+        else:
+            output = filename.with_suffix(".txt")
 
     assert output.is_file() is True
     # Read the data
@@ -68,12 +74,19 @@ def call_exe(name, extras="", output=None):
 
 
 def main():
+    
     for name in ("sp", "line", "depth",
                  "mapping", "undefined", "streamline"):
         # Normal exe
         call_exe(name)
-        # call_exe(name, extras="-f .csv")
-        # call_exe(name, extras="-f .txt", output=)
+        call_exe(name, extras="-f .txt")
+        call_exe(name,
+                 output="test.txt")
+        call_exe(name,
+                 output="test.csv")
+
+        
+    
     
 
 
