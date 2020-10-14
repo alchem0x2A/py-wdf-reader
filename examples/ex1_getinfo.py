@@ -11,7 +11,8 @@ from _path import curdir
 
 
 def main():
-    for name in ("sp", "line", "depth", "mapping", "undefined"):
+    for name in ("sp", "line", "depth",
+                 "mapping", "undefined", "streamline"):
         filename = curdir / "spectra_files" / "{0}.wdf".format(name)
         print("Testing: ", filename.as_posix())
         # if debug=True, debug information will show in stderr
