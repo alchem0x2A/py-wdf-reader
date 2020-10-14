@@ -27,6 +27,7 @@ def main():
     sp = reader.spectra         # spectrum / spectra in ccd counts
     # For single spectrum the spectra has shape (point_per_spectrum, )
     print(wn.shape, sp.shape)
+    assert wn.shape == sp.shape
     if plot:
         print("Use matplotlib to plot spectrum")
         plt.figure(figsize=(6, 4))

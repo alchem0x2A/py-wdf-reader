@@ -109,3 +109,7 @@ ENV/
 /examples/spectra_files/*.svg
 /*.csv
 /*.svg
+/bin/renishaw-export.py
+*.txt
+*.csv
+/examples/*.svg

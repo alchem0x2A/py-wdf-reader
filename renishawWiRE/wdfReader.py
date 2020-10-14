@@ -539,12 +539,12 @@ class WDFReader(object):
         """Print information of the wdf file
         """
         s = []
-        s.append("{0:>24s}:\t{1}".format("Title", self.title))
-        s.append("{0:>17s} version:\t{1}.{2}.{3}.{4}".
+        s.append(u"{0:>24s}:\t{1}".format("Title", self.title))
+        s.append(u"{0:>17s} version:\t{1}.{2}.{3}.{4}".
                  format(self.application_name,
                         *self.application_version))
 
-        s.append("{0:>24s}:\t{1} nm".format("Laser Wavelength",
+        s.append(u"{0:>24s}:\t{1} nm".format("Laser Wavelength",
                                             self.laser_length))
         for a in ("count", "capacity", "point_per_spectrum",
                   "scan_type", "measurement_type",
@@ -559,7 +559,8 @@ class WDFReader(object):
             except AttributeError:
                 continue
             s.append("{0:>24s}:\t{1}".format(sname, val))
-        print("\n".join(s), **params)
+        text = u"\n".join(s)
+        print(text, **params)
 
 
 if __name__ == '__main__':
