@@ -12,15 +12,14 @@ build:
   number: 0
   noarch: python
   script:
-    - python setup.py install --single-version-externally-managed --record record.txt
+    - python -m pip install .
   entry_points:
-    - wdf-export = renishawWiRE.export.main
+    - wdf-export = renishawWiRE.export:main
 
 requirements:
   build:
     - python
-    - setuptools
-    - numpy
+    - pip
   run:
     - python
     - numpy >=1.12.0
