@@ -5,11 +5,13 @@
 """
 
 from renishawWiRE.wdfReader import WDFReader
-from argparse import ArgumentParser
+from renishawWiRE.types import MeasurementType
+from argparse import ArgumentParser, RawTextHelpFormatter
 from pathlib import Path
 import os
 import sys
 import numpy as np
+
 
 def test_version():
     ver = sys.version_info
@@ -17,6 +19,37 @@ def test_version():
         return True
     else:
         return False
+
+
+def try_attr(obj, attr, type="str"):
+    try:
+        value = getattr(obj, attr)
+    except AttributeError:
+        return None
+
+
+def get_pos(reader):
+    if hasattr(reader, "zpos"):
+        if np.any(reader.zpos != 0):
+            pos = ["({0:.2f}; {1:.2f}; {2:.2f})".format(x_, y_, z_)
+                   for x_, y_, z_ in zip(reader.xpos, reader.ypos, reader.zpos)]
+        else:
+            pos = ["({0:.2f}; {1:.2f})".format(x_, y_)
+                   for x_, y_ in zip(reader.xpos, reader.ypos)]
+    else:
+        pos = ["({0:.2f}; {1:.2f})".format(x_, y_)
+               for x_, y_ in zip(reader.xpos, reader.ypos)]
+
+    return pos
+
+
+def get_unit(reader):
+    """X, y, or z units, if exists
+    """
+    for d in ("x", "y", "z"):
+        if hasattr(reader, d + "pos_unit"):
+            return getattr(reader, d + "pos_unit")
+    return None
 
 
 def main():
@@ -29,7 +62,11 @@ def main():
         return 1
 
     parser = ArgumentParser(description=("Simple script to convert Renishaw wdf spectroscopy"
-                                         " files into plain text files"))
+                                         " files into plain text files. The first 3 lines in the header are:\n"
+                                         "- Brief information of measurement\n"
+                                         "- Positions of spectra points, if exist\n"
+                                         "- Wavenumber and indices of points"),
+                            formatter_class=RawTextHelpFormatter)
     parser.add_argument("wdf_file",
                         help="Renishaw wdf for input")
     parser.add_argument("-o",
@@ -131,31 +168,82 @@ def handle_spectra(reader, delimiter=","):
     # Wavenumber is alwa
     wn = reader.xdata
     spectra = reader.spectra
+    # Initialize header with information
+    header_info = ("Measurement type: {0}{delim}"
+                   "Scan type: {1}{delim}"
+                   "Laser: {2:.1f} nm{delim}"
+                   "No. Spectra: {3}{delim}"
+                   "No. points/spectrum: {4}{delim}"
+                   "Unit spectra-x: {5}{delim}"
+                   "Unit spectra-y: {6}{delim}").format(reader.measurement_type.name,
+                                                        reader.scan_type.name,
+                                                        reader.laser_length,
+                                                        reader.count,
+                                                        reader.point_per_spectrum,
+                                                        reader.xlist_unit.name,
+                                                        reader.spectral_unit.name,
+                                                        delim=delimiter)
+
+    if reader.measurement_type == MeasurementType.Mapping:
+        x_l, y_l = reader.map_shape
+        x_span = reader.map_info["x_span"]
+        y_span = reader.map_info["y_span"]
+        header_info += ("Map X-dimension: {0} pts; {1:.2f} {unit}{delim}"
+                        "Map Y-dimension: {2} pts; {3:.2f} {unit}{delim}").format(x_l, x_span,
+                                                                                  y_l, y_span,
+                                                                                  unit=reader.xpos_unit.name,
+                                                                                  delim=delimiter)
+
     try:
         if len(spectra.shape) == 1:
             # single point
             l_w, = spectra.shape
             assert l_w == len(wn)
             X = np.vstack([wn, spectra]).T
-            header = delimiter.join(["Wavenumber", "point 1"])
+            header_indices = delimiter.join(["Wavenumber", "point 1"])
+            if hasattr(reader, "xpos") and (get_unit(reader) is not None):
+                header_positions = delimiter.join(["Pos. {0} points ({1})"
+                                                   .format(len(reader.xpos), get_unit(reader).name), ] +
+                                                  get_pos(reader))
+                # ["({0:.2f}; {1:.2f}; {2:.2f})".format(x_, y_, z_)
+                #  for x_, y_, z_ in zip(reader.xpos, reader.ypos, reader.zpos)])
+            else:
+                header_positions = delimiter.join(["Pos. 1 points ",
+                                                   "(0; 0; 0)"])
         elif len(spectra.shape) == 2:
             # line or depth scan
             n_p, l_w = spectra.shape
             X = np.vstack([wn, spectra]).T
-            header = delimiter.join(["Wavenumber", ] +
-                                    ["point {:d}".format(i + 1)
-                                     for i in range(n_p)])
+            if hasattr(reader, "xpos") and (get_unit(reader) is not None):
+                header_positions = delimiter.join(["Pos. {0} points ({1})"
+                                                   .format(len(reader.xpos), get_unit(reader).name), ] +
+                                                  get_pos(reader))
+                # ["({0:.2f}; {1:.2f}; {2:.2f})".format(x_, y_, z_)
+                #  for x_, y_, z_ in zip(reader.xpos, reader.ypos, reader.zpos)])
+            else:
+                header_positions = delimiter.join(["Pos. {0} points (Unknown dimension)"
+                                                   .format(n_p), ] +
+                                                  ["({0:.2f}; {1:.2f})".format(0, 0)
+                                                   for i in range(n_p)])
+            header_indices = delimiter.join(["Wavenumber", ] +
+                                            ["point {:d}".format(i + 1)
+                                             for i in range(n_p)])
         elif len(spectra.shape) == 3:
             # mapping
             r, c, l_w = spectra.shape
             assert l_w == len(wn)
             X = np.vstack([wn, spectra.reshape(r * c, l_w)]).T
-            header = delimiter.join(["Wavenumber", ] +
-                                    ["row {:d} column {:d}"
-                                     .format(i + 1,
-                                             j + 1)
-                                     for i in range(r)
-                                     for j in range(c)])
+            header_positions = delimiter.join(["Pos.  {0} points ({1})"
+                                               .format(len(reader.xpos), reader.xpos_unit.name), ] +
+                                              get_pos(reader))
+            # ["({0:.2f}; {1:.2f}; {2:.2f})".format(x_, y_, z_)
+            # for x_, y_, z_ in zip(reader.xpos, reader.ypos, reader.zpos)])
+            header_indices = delimiter.join(["Wavenumber", ] +
+                                            ["row {:d} column {:d}"
+                                             .format(i + 1,
+                                                     j + 1)
+                                             for i in range(r)
+                                             for j in range(c)])
         else:
             print(("There seems to be something wrong "
                    "with the spectral file. Abort!"),
@@ -167,6 +255,7 @@ def handle_spectra(reader, delimiter=","):
 
     # Sort the ndarray according to 0st
     X = X[X[:, 0].argsort()]
+    header = "\n".join([header_info, header_positions, header_indices, ])
     return X, header
 
 
