@@ -123,6 +123,20 @@ class DataType(IntEnum):
     Checksum = 16
     Flags = 17
     ElapsedTime = 18
+    # faker values
+    Faker0 = 19
+    Faker1 = 20
+    Faker2 = 21
+    Faker3 = 22
+    Faker4 = 23
+    Faker5 = 24
+    Faker6 = 25
+    Faker7 = 26
+    Faker8 = 27
+    Faker9 = 28
+    Faker10 = 29
+    Faker11 = 30
+    Faker12 = 31
 
     def __str__(self):
         return self._name_
