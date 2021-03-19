@@ -49,7 +49,7 @@ jobs:
       shell: bash
     - name: Test tag
       run: |
-        python -c "import os; print(os.getenv(\"GIT_TAG\"))"
+        echo "${{ env.GIT_TAG }}"
       shell: bash
     - name: Test encoding
       run: |
