@@ -45,7 +45,7 @@ jobs:
           tagRegexGroup: 1 # Optional. Default is 1.
     - name: Set Tag # Output usage example
       run: |
-          echo ::set-env name=GIT_TAG::${{ steps.tagName.outputs.tag }}
+          echo "GIT_TAG=${{ steps.tagName.outputs.tag }}" >> $GITHUB_ENV
       shell: bash
     - name: Test tag
       run: |
