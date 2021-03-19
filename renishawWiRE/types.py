@@ -123,6 +123,12 @@ class DataType(IntEnum):
     Checksum = 16
     Flags = 17
     ElapsedTime = 18
+    Spectral = 19
+    Mp_Well_Spatial_X= 22
+    Mp_Well_Spatial_Y = 23
+    Mp_LocationIndex = 24
+    Mp_WellReference = 25
+    EndMarker = 26
 
     def __str__(self):
         return self._name_
