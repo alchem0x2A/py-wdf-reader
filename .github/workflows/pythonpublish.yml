@@ -27,7 +27,7 @@ jobs:
       id: tagName
     - name: Set Tag
       run: |
-          echo ::set-env name=GIT_TAG::${{ steps.tagName.outputs.tag }}
+          echo "GIT_TAG=${{ steps.tagName.outputs.tag }}" >> $GITHUB_ENV
     - name: Build and publish
       env:
         TWINE_USERNAME: ${{ secrets.PYPI_USERNAME }}
