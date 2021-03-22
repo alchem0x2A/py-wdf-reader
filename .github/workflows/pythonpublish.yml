@@ -22,8 +22,25 @@ jobs:
       run: |
         python -m pip install --upgrade pip
         pip install setuptools wheel twine
+    - name: Get Tag
+      uses: olegtarasov/get-tag@v2.1
+      id: tagName
+      with:
+          tagRegex: "foobar-(.*)"  # Optional. Returns specified group text as tag name. Full tag string is returned if regex is not defined.
+          tagRegexGroup: 1 # Optional. Default is 1.
+#     - name: Set Tag # Output usage example
+#       run: |
+#           echo "${{ steps.tagName.outputs.tag }}"
+#           tag="${{ steps.tagName.outputs.tag }}"
+#           echo "GIT_TAG=$tag" >> $GITHUB_ENV
+#       shell: bash
+#     - name: Test tag
+#       run: |
+#         echo "${{ env.GIT_TAG }}"
+#       shell: bash
     - name: Build and publish
       env:
+        GIT_TAG: ${{ steps.tagName.outputs.tag }}
         TWINE_USERNAME: ${{ secrets.PYPI_USERNAME }}
         TWINE_PASSWORD: ${{ secrets.PYPI_PASSWORD }}
         CI_VERIFY: True
