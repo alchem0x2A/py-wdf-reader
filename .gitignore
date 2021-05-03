@@ -113,3 +113,5 @@ ENV/
 *.txt
 *.csv
 /examples/*.svg
+/renishawWiRE/meta.yaml
+/renishawWiRE/LICENSE
