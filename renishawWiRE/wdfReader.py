@@ -418,7 +418,10 @@ class WDFReader(object):
         # Handle image dimension if PIL is present
         if PIL is not None:
             pil_img = Image.open(self.img)
-            exif_header = dict(pil_img.getexif())
+            # Weird missing header keys when Pillow >= 8.2.0.
+            # see https://pillow.readthedocs.io/en/stable/releasenotes/8.2.0.html#image-getexif-exif-and-gps-ifd
+            # Use fall-back _getexif method instead
+            exif_header = dict(pil_img._getexif())
             try:
                 # Get the width and height of image
                 w_ = exif_header[ExifTags.FocalPlaneXResolution]
