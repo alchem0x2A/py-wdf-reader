@@ -1,8 +1,8 @@
 # `renishawWiRE` Renishaw Raman spectroscopy parser in python
 ![License: GPL v3](https://img.shields.io/badge/License-GPLv3-blue.svg)
 [![PyPI version](https://badge.fury.io/py/renishawWiRE.svg)](https://badge.fury.io/py/renishawWiRE)
-[![Anaconda version](https://anaconda.org/alchem0x2a/renishaw_wire/badges/version.svg)](https://conda.anaconda.org/alchem0x2a)
-[![Anaconda-Server Badge](https://anaconda.org/alchem0x2a/renishaw_wire/badges/installer/conda.svg)](https://conda.anaconda.org/alchem0x2a)
+[![Anaconda version](https://anaconda.org/conda-forge/renishaw_wire/badges/version.svg)](https://anaconda.org/conda-forge/renishaw_wire)
+#[![Anaconda-Server Badge](https://anaconda.org/alchem0x2a/renishaw_wire/badges/installer/conda.svg)](https://conda.anaconda.org/alchem0x2a)
 ![actions](https://github.com/alchem0x2A/py-wdf-reader/workflows/Python%20package/badge.svg)
 
 
@@ -58,11 +58,12 @@ cd py-wdf-reader
 pip install -e ".[plot]"
 ```
 
-### 3. Via `anaconda`
-The version hosted by `anaconda` will install all dependent packages including `numpy` `matplotlib` and `Pillow`
+### 3. Via `conda-forge`
+The version hosted on `conda-forge` will install all dependent packages including `numpy` `matplotlib` and `Pillow`. 
+Note the slight difference of package name compared with PyPI.
 
 ```bash
-conda install -c alchem0x2a renishaw_wire
+conda install -c conda-forge renishaw_wire
 ```
 
 ## Test installation
