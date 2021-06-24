@@ -72,6 +72,7 @@ class UnitType(IntEnum):
     Fahrenheit = 22
     KelvinPerMinute = 23
     FileTime = 24
+    Microseconds = 25
 
     def __str__(self):
         """Rewrite the unit name output"""
@@ -129,6 +130,7 @@ class DataType(IntEnum):
     Mp_LocationIndex = 24
     Mp_WellReference = 25
     EndMarker = 26
+    ExposureTime = 27
 
     def __str__(self):
         return self._name_
