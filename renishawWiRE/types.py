@@ -100,7 +100,8 @@ class UnitType(IntEnum):
                         Celsius="°C",
                         Fahrenheit="°F",
                         KelvinPerMinute="K/min",
-                        FileTime="",)
+                        FileTime="s",  # FileTime use stamps and in relative second
+                       )
         return unit_str[self._name_]
 
 
