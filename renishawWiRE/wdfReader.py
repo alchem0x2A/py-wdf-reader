@@ -330,8 +330,10 @@ class WDFReader(object):
             # array = numpy.empty(self.count)
             
             # Time appears to be recorded as int64 in 100 nanosecond intervals
+            # Possibly using the .NET DateTime epoch
             # Reference does not appear to be  Unix Epoch time  
             # Set time[0] = 0 until timestamp reference can be determined
+            # Resulting array will have unit of `FileTime` in seconds
             if self.origin_list_header[i][1] == DataType.Time:             
                 array = numpy.array([self.__read_type("int64")
                                  for i in range(self.count)]) / 1e7
