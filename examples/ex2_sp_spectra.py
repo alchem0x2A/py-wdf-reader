@@ -7,8 +7,10 @@
 
 from renishawWiRE import WDFReader
 from _path import curdir, imgdir
+
 try:
     import matplotlib.pyplot as plt
+
     plot = True
 except ImportError:
     plot = False
@@ -18,13 +20,16 @@ def main():
     filename = curdir / "spectra_files" / "sp.wdf"
     reader = WDFReader(filename)
     print("Measurement type is ", reader.measurement_type)
-    print("{0} Spectra obtained with {1} accumulations each".
-          format(reader.count, reader.accumulation_count))
+    print(
+        "{0} Spectra obtained with {1} accumulations each".format(
+            reader.count, reader.accumulation_count
+        )
+    )
     # For ex1.wdf there is only 1 spectrum
     assert reader.count == 1
 
-    wn = reader.xdata           # wavenumber
-    sp = reader.spectra         # spectrum / spectra in ccd counts
+    wn = reader.xdata  # wavenumber
+    sp = reader.spectra  # spectrum / spectra in ccd counts
     # For single spectrum the spectra has shape (point_per_spectrum, )
     print(wn.shape, sp.shape)
     assert wn.shape == sp.shape

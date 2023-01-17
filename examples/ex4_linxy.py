@@ -8,8 +8,10 @@
 import numpy as np
 from renishawWiRE import WDFReader
 from _path import curdir, imgdir
+
 try:
     import matplotlib.pyplot as plt
+
     plot = True
 except ImportError:
     plot = False
@@ -27,9 +29,9 @@ def main():
     y = reader.ypos
     print(x.shape, y.shape)
     assert x.shape[0] == y.shape[0] == spectra.shape[0]
-    
+
     # Distance
-    d = np.sqrt(x ** 2 + y ** 2)
+    d = np.sqrt(x**2 + y**2)
     wn = reader.xdata
     spectra = reader.spectra
     spectra = spectra - spectra.min(axis=1, keepdims=True)
@@ -37,7 +39,7 @@ def main():
     pos = np.where((wn >= 1560) & (wn <= 1620))[0]
     cut = spectra[:, pos]
     sum_cnt = np.sum(cut, axis=1)
-    
+
     if plot is True:
         # Level the spectra with baseline intensity
         plt.figure()

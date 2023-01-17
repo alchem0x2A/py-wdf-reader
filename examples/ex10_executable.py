@@ -12,9 +12,11 @@ from pathlib import Path
 import numpy as np
 from renishawWiRE import WDFReader
 from _path import curdir, imgdir
+
 try:
     import matplotlib.pyplot as plt
     import matplotlib.image as mpimg
+
     plot = True
 except ImportError:
     plot = False
@@ -31,8 +33,7 @@ def call_exe(name, extras="", output=None):
             print(f)
             os.remove(f)
     # Initial name
-    cmd = "wdf-export {0} {1}".format(filename.as_posix(),
-                                      extras)
+    cmd = "wdf-export {0} {1}".format(filename.as_posix(), extras)
     if output is not None:
         cmd += "-o {0}".format(output)
 
@@ -60,34 +61,23 @@ def call_exe(name, extras="", output=None):
     spectra_data = data[:, 1:]
     assert reader.xdata.shape[0] == wn_data.shape[0]
     assert reader.count == spectra_data.shape[1]
-    spectra_reader = reader.spectra.reshape(reader.count,
-                                            reader.xdata.shape[0]).T
+    spectra_reader = reader.spectra.reshape(reader.count, reader.xdata.shape[0]).T
     # Only do this for decreasing sequence
-    if reader.xdata[0] >  reader.xdata[1]:
+    if reader.xdata[0] > reader.xdata[1]:
         spectra_reader = spectra_reader[::-1, :]
     print(spectra_reader)
     print(spectra_data)
     assert np.all(np.isclose(spectra_reader, spectra_data, 1e-3))
 
-    
-    
-
 
 def main():
-    
-    for name in ("sp", "line", "depth",
-                 "mapping", "undefined", "streamline"):
+
+    for name in ("sp", "line", "depth", "mapping", "undefined", "streamline"):
         # Normal exe
         call_exe(name)
         call_exe(name, extras="-f .txt")
-        call_exe(name,
-                 output="test.txt")
-        call_exe(name,
-                 output="test.csv")
-
-        
-    
-    
+        call_exe(name, output="test.txt")
+        call_exe(name, output="test.csv")
 
 
 if __name__ == "__main__":

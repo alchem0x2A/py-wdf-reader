@@ -8,9 +8,11 @@
 import numpy as np
 from renishawWiRE import WDFReader
 from _path import curdir, imgdir
+
 try:
     import matplotlib.pyplot as plt
     import matplotlib.image as mpimg
+
     plot = True
 except ImportError:
     plot = False
@@ -18,7 +20,7 @@ except ImportError:
 
 def peak_in_range(spectra, wn, range, method="max", **params):
     """Find the max intensity of peak within range
-       method can be max, min, or mean
+    method can be max, min, or mean
     """
     cond = np.where((wn >= range[0]) & (wn <= range[1]))[0]
     spectra_cut = spectra[:, :, cond]
@@ -59,23 +61,24 @@ def main():
         plt.subplot(121)
         # Show the image with upper origin extent See
         # https://matplotlib.org/3.1.1/gallery/text_labels_and_annotations/text_alignment.html
-        plt.imshow(img, extent=(img_x0, img_x0 + img_w,
-                                img_y0 + img_h, img_y0))
+        plt.imshow(img, extent=(img_x0, img_x0 + img_w, img_y0 + img_h, img_y0))
         # Add rectangle for marking
-        r = plt.Rectangle(xy=(map_x.min(), map_y.min()),
-                          width=map_w,
-                          height=map_h,
-                          fill=False)
+        r = plt.Rectangle(
+            xy=(map_x.min(), map_y.min()), width=map_w, height=map_h, fill=False
+        )
         plt.gca().add_patch(r)
         plt.xlabel("Stage X [μm]")
         plt.ylabel("Stage Y [μm]")
 
         # Right plot histogram of Peak A/B mapping
         plt.subplot(122)
-        plt.imshow(ratio, interpolation="bicubic",
-                   extent=[0, map_w,
-                           map_h, 0],
-                   vmin=0.5, vmax=1.5)
+        plt.imshow(
+            ratio,
+            interpolation="bicubic",
+            extent=[0, map_w, map_h, 0],
+            vmin=0.5,
+            vmax=1.5,
+        )
         plt.xlabel("Mapping x [μm]")
         plt.ylabel("Mapping y [μm]")
         cb = plt.colorbar()

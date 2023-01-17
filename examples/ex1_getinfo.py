@@ -7,12 +7,12 @@
 
 from renishawWiRE import WDFReader
 from _path import curdir
-#import pytest
+
+# import pytest
 
 
 def main():
-    for name in ("sp", "line", "depth",
-                 "mapping", "undefined", "streamline"):
+    for name in ("sp", "line", "depth", "mapping", "undefined", "streamline"):
         filename = curdir / "spectra_files" / "{0}.wdf".format(name)
         print("Testing: ", filename.as_posix())
         # if debug=True, debug information will show in stderr

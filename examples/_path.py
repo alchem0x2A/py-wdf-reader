@@ -1,9 +1,10 @@
 from pathlib import Path
 import os
+
 try:
     import pytest
 except ImportError:
-    #print("No pytest")
+    # print("No pytest")
     pass
 
 curdir = Path(__file__).parent

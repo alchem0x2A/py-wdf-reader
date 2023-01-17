@@ -8,8 +8,10 @@
 import numpy as np
 from renishawWiRE import WDFReader
 from _path import curdir, imgdir
+
 try:
     import matplotlib.pyplot as plt
+
     plot = True
 except ImportError:
     plot = False

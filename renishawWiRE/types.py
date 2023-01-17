@@ -12,9 +12,9 @@ class LenType(Enum):
     l_int16 = 2
     l_int32 = 4
     l_int64 = 8
-    s_int16 = "<H"              # unsigned short int
-    s_int32 = "<I"              # unsigned int32
-    s_int64 = "<Q"              # unsigned int64
+    s_int16 = "<H"  # unsigned short int
+    s_int32 = "<I"  # unsigned int32
+    s_int64 = "<Q"  # unsigned int64
     l_float = 4
     s_float = "<f"
     l_double = 8
@@ -48,11 +48,11 @@ class ScanType(IntEnum):
 
 class UnitType(IntEnum):
     Arbitrary = 0
-    RamanShift = 1              # cm^-1 by default
-    Wavenumber = 2              # nm
+    RamanShift = 1  # cm^-1 by default
+    Wavenumber = 2  # nm
     Nanometre = 3
     ElectronVolt = 4
-    Micron = 5                  # same for EXIF units
+    Micron = 5  # same for EXIF units
     Counts = 6
     Electrons = 7
     Millimetres = 8
@@ -76,32 +76,33 @@ class UnitType(IntEnum):
 
     def __str__(self):
         """Rewrite the unit name output"""
-        unit_str = dict(Arbitrary="",
-                        RamanShift="1/cm",              # cm^-1 by default
-                        Wavenumber="nm",            # nm
-                        Nanometre="nm",
-                        ElectronVolt="eV",
-                        Micron="um",  # same for EXIF units
-                        Counts="counts",
-                        Electrons="electrons",
-                        Millimetres="mm",
-                        Metres="m",
-                        Kelvin="K",
-                        Pascal="Pa",
-                        Seconds="s",
-                        Milliseconds="ms",
-                        Hours="h",
-                        Days="d",
-                        Pixels="px",
-                        Intensity="",
-                        RelativeIntensity="",
-                        Degrees="°",
-                        Radians="rad",
-                        Celsius="°C",
-                        Fahrenheit="°F",
-                        KelvinPerMinute="K/min",
-                        FileTime="s",  # FileTime use stamps and in relative second
-                       )
+        unit_str = dict(
+            Arbitrary="",
+            RamanShift="1/cm",  # cm^-1 by default
+            Wavenumber="nm",  # nm
+            Nanometre="nm",
+            ElectronVolt="eV",
+            Micron="um",  # same for EXIF units
+            Counts="counts",
+            Electrons="electrons",
+            Millimetres="mm",
+            Metres="m",
+            Kelvin="K",
+            Pascal="Pa",
+            Seconds="s",
+            Milliseconds="ms",
+            Hours="h",
+            Days="d",
+            Pixels="px",
+            Intensity="",
+            RelativeIntensity="",
+            Degrees="°",
+            Radians="rad",
+            Celsius="°C",
+            Fahrenheit="°F",
+            KelvinPerMinute="K/min",
+            FileTime="s",  # FileTime use stamps and in relative second
+        )
         return unit_str[self._name_]
 
 
@@ -126,7 +127,7 @@ class DataType(IntEnum):
     Flags = 17
     ElapsedTime = 18
     Spectral = 19
-    Mp_Well_Spatial_X= 22
+    Mp_Well_Spatial_X = 22
     Mp_Well_Spatial_Y = 23
     Mp_LocationIndex = 24
     Mp_WellReference = 25
@@ -138,17 +139,17 @@ class DataType(IntEnum):
 
 
 class Offsets(IntEnum):
-    """Offsets to the start of block
-    """
+    """Offsets to the start of block"""
+
     # General offsets
     block_name = 0x0
     block_id = 0x4
     block_data = 0x10
     # offsets in WDF1 block
-    measurement_info = 0x3c                  #
+    measurement_info = 0x3C  #
     spectral_info = 0x98
-    file_info = 0xd0
-    usr_name = 0xf0
+    file_info = 0xD0
+    usr_name = 0xF0
     data_block = 0x200
     # offsets in ORGN block
     origin_info = 0x14
@@ -161,12 +162,12 @@ class Offsets(IntEnum):
 
 
 class ExifTags(IntEnum):
-    """Customized EXIF TAGS
-    """
+    """Customized EXIF TAGS"""
+
     # Standard EXIF TAGS
-    FocalPlaneXResolution = 0xa20e
-    FocalPlaneYResolution = 0xa20f
-    FocalPlaneResolutionUnit = 0xa210
+    FocalPlaneXResolution = 0xA20E
+    FocalPlaneYResolution = 0xA20F
+    FocalPlaneResolutionUnit = 0xA210
     # Customized EXIF TAGS from Renishaw
-    FocalPlaneXYOrigins = 0xfea0
-    FieldOfViewXY = 0xfea1
+    FocalPlaneXYOrigins = 0xFEA0
+    FieldOfViewXY = 0xFEA1

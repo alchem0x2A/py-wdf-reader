@@ -9,8 +9,10 @@
 import numpy as np
 from renishawWiRE import WDFReader
 from _path import curdir, imgdir
+
 try:
     import matplotlib.pyplot as plt
+
     plot = True
 except ImportError:
     plot = False
@@ -18,7 +20,7 @@ except ImportError:
 
 def peak_in_range(spectra, wn, range, method="max", **params):
     """Find the max intensity of peak within range
-       method can be max, min, or mean
+    method can be max, min, or mean
     """
     cond = np.where((wn >= range[0]) & (wn <= range[1]))[0]
     spectra_cut = spectra[:, cond]
