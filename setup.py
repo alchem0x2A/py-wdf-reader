@@ -2,6 +2,7 @@ import os
 import sys
 
 from setuptools import find_packages, setup
+
 # from setuptools.command.install import install
 
 NAME = "renishawWiRE"
@@ -13,8 +14,10 @@ def verify_version():
     tag = os.getenv("GIT_TAG")
     if tag != VERSION:
         info = "Git tag: {0} does not match the version of this app: {1}".format(
-            tag, VERSION)
+            tag, VERSION
+        )
         sys.exit(info)
+
 
 # class VerifyVersionCommand(install):
 #     """Custom command to verify that the git tag matches our version"""
@@ -40,9 +43,9 @@ setup(
     packages=find_packages(exclude=["tests"]),
     url="https://github.com/alchem0x2A/py-wdf-reader",
     # project_urls={
-        # "Changelog": ("https://github.com/pennlabs/github-project/blob/master/CHANGELOG.md")
+    # "Changelog": ("https://github.com/pennlabs/github-project/blob/master/CHANGELOG.md")
     # },
-    license="GPLv3",
+    license="MIT",
     author="alchem0x2A",
     author_email="tian.tian@chem.ethz.ch",
     description="Reading wdf Raman spectroscopy file from Renishaw WiRE",
@@ -51,8 +54,7 @@ setup(
     install_requires=["numpy>=1.12.0"],
     extras_require={
         "image": ["Pillow>=3.4.0"],
-        "plot":  ["Pillow>=3.4.0",
-                  "matplotlib>=2.1.0"],
+        "plot": ["Pillow>=3.4.0", "matplotlib>=2.1.0"],
     },
     classifiers=[
         "Programming Language :: Python",
