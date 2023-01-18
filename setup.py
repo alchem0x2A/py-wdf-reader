@@ -4,7 +4,7 @@ import sys
 from setuptools import find_packages, setup
 
 NAME = "renishawWiRE"
-VERSION = "0.1.15"
+VERSION = "0.1.16"
 DESCRIPTION = open("README.md", encoding="utf-8").read()
 
 
