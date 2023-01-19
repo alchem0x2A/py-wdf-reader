@@ -32,7 +32,7 @@ test:
 
 about:
   home: https://github.com/alchem0x2A/py-wdf-reader
-  license: GPL-3
+  license: MIT
   license_family: GPL
   summary: 'Reading wdf Raman spectroscopy file from Renishaw WiRE'
 
