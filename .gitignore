@@ -100,7 +100,6 @@ ENV/
 # mypy
 .mypy_cache/
 *~
-*.wdf
 /.piped
 /.downloaded
 .DS_Store
@@ -110,7 +109,6 @@ ENV/
 /*.csv
 /*.svg
 /bin/renishaw-export.py
-*.txt
 *.csv
 /examples/*.svg
 /renishawWiRE/meta.yaml
